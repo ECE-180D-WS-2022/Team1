@@ -1,6 +1,10 @@
 import moves as mv
+import numpy as np
+import sys
+import time
+import pokepy
 
-def import_pokemon(move_list):
+def import_pokemon(move_list, num_pkmn):
     pokemon_list = []
 
     #f = open('monsterlist.txt','r')
@@ -10,22 +14,8 @@ def import_pokemon(move_list):
     with open('monsterlist.txt') as f:
         data = f.read().splitlines()
 
-    #testing reading file values
-    #print(data[0])
-    #print(data[1])
-    #print(data[2])
-    #print(data[3])
-    #print(data[4])
-    #print(data[5])
-    #print(data[6])
-    #print(data[7])
-    #print(data[8])
-    #print(data[9])
-    #print(data[10])
-    #print(data[11])
-
     #append pokemon list with full list of pokemon
-    for i in range(3):  #3 total pokemon
+    for i in range(num_pkmn):  #3 total pokemon
         print(i)
         #start by pulling the data values
 
@@ -67,6 +57,7 @@ class pokemon:
         self.spatk = stats[3]
         self.spdef = stats[4]
         self.xp = 0
+        self.lvl = 1
         self.battleXP = stats[5]
         self.moves = moves
 
@@ -83,3 +74,22 @@ class pokemon:
         for i in self.moves:
             i.print_move()
             print()
+
+    def update_level(self, gained_xp):
+        #1000 xp to level up
+        self.xp += gained_xp
+        if (self.xp > (self.lvl * 1000)):
+            print()
+            #TODO: implement leveling
+
+        return
+
+def battle_random(playerTeam, pokemonList):
+    #have player battle against a random CPU
+
+    return
+
+def battle_opponent(playerTeam):
+    #have player battle against another live player
+
+    return
