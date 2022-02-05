@@ -1,0 +1,36 @@
+Tackle
+Normal
+40
+35
+0.95
+A full body charge attack.
+Water Gun
+Water
+40
+25
+1.0
+Squirts water to attack.
+Flamethrower
+Fire
+90
+15
+1.0
+The foe is scorched with intense flames.
+Moonblast
+Fairy
+95
+15
+1.0
+The foe is attacked with the power of the moon.
+Guillotine
+Normal
+99999999
+5
+0.3
+A OHKO pincer attack.
+Thunderbolt
+Electric
+90
+15
+1
+A strong electric blast.
