@@ -6,7 +6,7 @@ ATK
 DEF
 SPATK
 SPDEF
-XP
+XPReward
 Move1
 Move2
 Move3
@@ -26,3 +26,20 @@ description
 leveling:
 each pokemon defeated provides 'x' XP to involved monsters
 each level gives rand.(1,4) to each stat (high-rolling would be hella op lol)
+
+
+monster savefile format:
+(NAME)
+type
+HP
+ATK
+DEF
+SPATK
+SPDEF
+XPReward
+Move1
+Move2
+Move3
+Move4
+accumulated XP
+LVL

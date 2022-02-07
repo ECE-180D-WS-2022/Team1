@@ -1,0 +1,28 @@
+Pikachu
+Electric
+35
+55
+30
+50
+40
+82
+Thunderbolt
+Tackle
+Water Gun
+Flamethrower
+0
+1
+Eevee
+Normal
+55
+55
+50
+45
+76
+92
+Thunderbolt
+Tackle
+Water Gun
+Flamethrower
+0
+1
