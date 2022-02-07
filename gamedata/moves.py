@@ -40,7 +40,7 @@ class move:
         print("Move Type: ", self.type)
         print("Move Power: ", self.power)
         print("Move PP: ", self.pp)
-        print("Move Accuracy", self.acc)
+        print("Move Accuracy: ", self.acc)
         print(self.desc)
         return
 

@@ -16,7 +16,7 @@ def import_pokemon(move_list, num_pkmn):
 
     #append pokemon list with full list of pokemon
     for i in range(num_pkmn):  #3 total pokemon
-        print(i)
+        #print(i)
         #start by pulling the data values
 
         pName = data[12*i]
@@ -69,7 +69,7 @@ class pokemon:
         print("DEF: ", self.defense)
         print("SPATK: ", self.spatk)
         print("SPDEF: ", self.spdef)
-        print("EXP Gained: ", self.battleXP)
+        print("EXP Reward: ", self.battleXP)
         print()
         for i in self.moves:
             i.print_move()
