@@ -4,7 +4,7 @@ import numpy as np
 import sys
 import time
 #import pokepy
-import json
+#import json
 import os
 import random
 
@@ -101,7 +101,7 @@ def load_game(move_list):
 
     return loadTeam
 
-def test_script():
+def test_loadgame():
     #print("test")
 
     #full_movelist[0].print_move()
@@ -129,12 +129,19 @@ def test_script():
         print()
     return
 
-#test_script()
+def test_levelscaling():
+    tempTeam = []
+    tempTeam.append(full_pokemonlist[0])
+    tempTeam.append(full_pokemonlist[1])
+    tempTeam.append(full_pokemonlist[2])
+    playerTeam[2].scale_stats(100)
+    playerTeam[2].print_pokemon()
+
 playerTeam = []
 playerTeam.append(full_pokemonlist[0])
 playerTeam.append(full_pokemonlist[1])
 playerTeam.append(full_pokemonlist[2])
-#pk.battle_random(playerTeam, full_pokemonlist, len(playerTeam), 3)
-playerTeam[2].scale_stats(100)
-playerTeam[2].print_pokemon()
+#test_levelscaling()
+#test_loadgame()
+pk.battle_random(playerTeam, full_pokemonlist, len(playerTeam), 3)
 print("done")

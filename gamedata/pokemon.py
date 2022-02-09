@@ -4,6 +4,7 @@ import sys
 import time
 #import pokepy
 import random
+import os
 
 def import_pokemon(move_list, num_pkmn):
     pokemon_list = []
@@ -64,6 +65,11 @@ class pokemon:
         self.xp = 0
         self.lvl = 1
 
+    def print_pkmn_moves(self):
+        for i in self.moves:
+            i.print_move()
+            print()
+
     def print_pokemon(self):
         print(self.name)
         print("Type: ", self.type)
@@ -77,9 +83,7 @@ class pokemon:
         print("Total XP: ", self.xp)
         print("Current Level: ", self.lvl)
         print()
-        for i in self.moves:
-            i.print_move()
-            print()
+        self.print_pkmn_moves()
 
     def update_level(self, gained_xp):
         #1000 xp to level up
@@ -119,8 +123,8 @@ def battle_random(playerTeam, pokemonList, playerTeamSize, numPokemon):
         health.append(mon.hp)
         total_lvl += mon.lvl
 
-    activePokemon = 0           #always start with first pokemon
-    battle_participants.append(activePokemon)   #append to participants
+    currentPokemon = 0           #always start with first pokemon
+    battle_participants.append(currentPokemon)   #append to participants
 
     #function that checks if player still has pokemon
     #that are able to battle
@@ -131,18 +135,40 @@ def battle_random(playerTeam, pokemonList, playerTeamSize, numPokemon):
 
     #print(health_check(health))
 
+    #function to clear console for better readability
+    def clearConsole():
+        command = 'clear'
+        if os.name in ('nt', 'dos'):
+            command = 'cls'
+        os.system(command)
+
     #generate a random opponent (use avg team level, rounded down)
     avg_lvl = int(total_lvl/len(playerTeam))
     #print(avg_lvl)
-
+    opponentIndex = random.randrange(0, numPokemon)
+    CPU_pokemon = pokemonList[opponentIndex]
+    CPU_pokemon.scale_stats(30)
 
     #while player still has pokemon that can battle,
     #keep battling
-    #while(health_check(health)):
-
-
-
-    #return
+    while(health_check(health)):
+        clearConsole()
+        print("You have encountered a Level", CPU_pokemon.lvl, CPU_pokemon.name)
+        print(CPU_pokemon.name, "has", CPU_pokemon.hp, "health")
+        if (playerTeam[currentPokemon].speed > CPU_pokemon.speed):
+            print("\nYou send out your Level", playerTeam[currentPokemon].lvl, playerTeam[currentPokemon].name)
+            print("Your", playerTeam[currentPokemon].name, "has", playerTeam[currentPokemon].hp, "health")
+            print("\nMovelist:")
+            playerTeam[currentPokemon].print_pkmn_moves()
+            print("\nSelect a Move")
+            temp = input()
+            if (temp == playerTeam[currentPokemon].moves[0].name or
+                temp == playerTeam[currentPokemon].moves[1].name or
+                temp == playerTeam[currentPokemon].moves[2].name or
+                temp == playerTeam[currentPokemon].moves[3].name):
+                print("Your", playerTeam[currentPokemon].name, "used", temp)
+                input()
+    return
 
 def battle_opponent(playerTeam):
     #have player battle against another live player
