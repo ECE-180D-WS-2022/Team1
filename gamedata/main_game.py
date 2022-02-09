@@ -3,9 +3,10 @@ import moves as mv
 import numpy as np
 import sys
 import time
-import pokepy
+#import pokepy
 import json
 import os
+import random
 
 full_movelist = mv.import_moves(6) #6 moves
 full_pokemonlist = pk.import_pokemon(full_movelist, 3) #3 pkmn
@@ -29,6 +30,8 @@ def save_game(playerTeam):
             f.write(str(mon.spatk))
             f.write("\n")
             f.write(str(mon.spdef))
+            f.write("\n")
+            f.write(str(mon.speed))
             f.write("\n")
             f.write(str(mon.battleXP))
             f.write("\n")
@@ -64,20 +67,21 @@ def load_game(move_list):
     #print(teamSize)
 
     for i in range(teamSize):
-        pName = data[14*i]
-        pType = data[(14*i) + 1]
+        pName = data[15*i]
+        pType = data[(15*i) + 1]
         pStats = []
         pMoveName = []
-        pStats.append(int(data[(14*i) + 2])) #hp
-        pStats.append(int(data[(14*i) + 3])) #atk
-        pStats.append(int(data[(14*i) + 4])) #def
-        pStats.append(int(data[(14*i) + 5])) #spatk
-        pStats.append(int(data[(14*i) + 6])) #spdef
-        pStats.append(int(data[(14*i) + 7])) #xpreward
-        pMoveName.append(data[(14*i) + 8])   #move1
-        pMoveName.append(data[(14*i) + 9])   #move2
-        pMoveName.append(data[(14*i) + 10])  #move3
-        pMoveName.append(data[(14*i) + 11])  #move4
+        pStats.append(int(data[(15*i) + 2])) #hp
+        pStats.append(int(data[(15*i) + 3])) #atk
+        pStats.append(int(data[(15*i) + 4])) #def
+        pStats.append(int(data[(15*i) + 5])) #spatk
+        pStats.append(int(data[(15*i) + 6])) #spdef
+        pStats.append(int(data[(15*i) + 7])) #spdef
+        pStats.append(int(data[(15*i) + 8])) #xpreward
+        pMoveName.append(data[(15*i) + 9])   #move1
+        pMoveName.append(data[(15*i) + 10])   #move2
+        pMoveName.append(data[(15*i) + 11])  #move3
+        pMoveName.append(data[(15*i) + 12])  #move4
 
         #import the move objects and associate them with pokemon
         pMoves = []
@@ -89,36 +93,48 @@ def load_game(move_list):
         object = pk.pokemon(pName, pType, pMoves, pStats)
 
         #assign total XP and level to object
-        object.xp = int(data[(14*i) + 12])
-        object.lvl = int(data[(14*i) + 13])
+        object.xp = int(data[(15*i) + 13])
+        object.lvl = int(data[(15*i) + 14])
 
         #append the object to the loaded team
         loadTeam.append(object)
 
     return loadTeam
 
-#print("test")
+def test_script():
+    #print("test")
 
-#full_movelist[0].print_move()
-#full_movelist[1].print_move()
-#full_movelist[2].print_move()
-#full_movelist[3].print_move()
-#full_movelist[4].print_move()
-#full_movelist[5].print_move()
+    #full_movelist[0].print_move()
+    #full_movelist[1].print_move()
+    #full_movelist[2].print_move()
+    #full_movelist[3].print_move()
+    #full_movelist[4].print_move()
+    #full_movelist[5].print_move()
 
-#for i in full_pokemonlist:
-#    i.print_pokemon()
-#    print()
+    #for i in full_pokemonlist:
+    #    i.print_pokemon()
+    #    print()
 
-#print(full_movelist[1].find_effectiveness("Fire"))
+    #print(full_movelist[1].find_effectiveness("Fire"))
 
+    playerTeam = []
+    playerTeam.append(full_pokemonlist[0])
+    playerTeam.append(full_pokemonlist[1])
+    #playerTeam[0].lvl = 10
+    save_game(playerTeam)
+
+    playerTeam = load_game(full_movelist)
+    for i in playerTeam:
+        i.print_pokemon()
+        print()
+    return
+
+#test_script()
 playerTeam = []
 playerTeam.append(full_pokemonlist[0])
 playerTeam.append(full_pokemonlist[1])
-#playerTeam[0].lvl = 10
-save_game(playerTeam)
-
-playerTeam = load_game(full_movelist)
-for i in playerTeam:
-    i.print_pokemon()
-    print()
+playerTeam.append(full_pokemonlist[2])
+#pk.battle_random(playerTeam, full_pokemonlist, len(playerTeam), 3)
+playerTeam[2].scale_stats(30)
+playerTeam[2].print_pokemon()
+print("done")

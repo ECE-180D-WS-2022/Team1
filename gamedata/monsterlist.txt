@@ -2,9 +2,10 @@ Pikachu
 Electric
 35
 55
-30
-50
 40
+50
+50
+90
 82
 Thunderbolt
 Tackle
@@ -16,7 +17,8 @@ Normal
 55
 50
 45
-76
+65
+55
 92
 Thunderbolt
 Tackle
@@ -29,6 +31,7 @@ Fire
 78
 109
 85
+100
 209
 Thunderbolt
 Tackle

@@ -1,6 +1,6 @@
 import sys
 import time
-import pokepy
+#import pokepy
 
 def import_moves(num_moves):
     movelist = []
@@ -74,3 +74,7 @@ class move:
 
         multiplier = effectiveness_array[attackType][pkmnType_index]
         return multiplier
+
+    def calculate_damage(self, selfType, targetType):
+        damage = 0
+        return damage

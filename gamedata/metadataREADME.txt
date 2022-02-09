@@ -6,6 +6,7 @@ ATK
 DEF
 SPATK
 SPDEF
+SPD
 XPReward
 Move1
 Move2
@@ -36,6 +37,7 @@ ATK
 DEF
 SPATK
 SPDEF
+SPD
 XPReward
 Move1
 Move2
