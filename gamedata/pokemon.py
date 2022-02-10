@@ -5,6 +5,7 @@ import time
 #import pokepy
 import random
 import os
+import copy
 
 def import_pokemon(move_list, num_pkmn):
     pokemon_list = []
@@ -146,17 +147,21 @@ def battle_random(playerTeam, pokemonList, playerTeamSize, numPokemon):
     avg_lvl = int(total_lvl/len(playerTeam))
     #print(avg_lvl)
     opponentIndex = random.randrange(0, numPokemon)
-    CPU_pokemon = pokemonList[opponentIndex]
-    CPU_pokemon.scale_stats(30)
+    CPU_pokemon = copy.deepcopy(pokemonList[opponentIndex])         #have to copy so changes don't reflect on full list
+    CPU_pokemon.scale_stats(avg_lvl)
 
     #while player still has pokemon that can battle,
     #keep battling
+    print("You have encountered a Level", CPU_pokemon.lvl, CPU_pokemon.name)
+    print("\nYou send out your Level", playerTeam[currentPokemon].lvl, playerTeam[currentPokemon].name)
+    #print(playerTeam[currentPokemon].speed)
+    #print(CPU_pokemon.speed)
+    input("Press Enter to Continue")
     while(health_check(health)):
         clearConsole()
-        print("You have encountered a Level", CPU_pokemon.lvl, CPU_pokemon.name)
-        print(CPU_pokemon.name, "has", CPU_pokemon.hp, "health")
+        #if player pokemon is faster
         if (playerTeam[currentPokemon].speed > CPU_pokemon.speed):
-            print("\nYou send out your Level", playerTeam[currentPokemon].lvl, playerTeam[currentPokemon].name)
+            print("Opposing", CPU_pokemon.name, "has", CPU_pokemon.hp, "health")
             print("Your", playerTeam[currentPokemon].name, "has", playerTeam[currentPokemon].hp, "health")
             print("\nMovelist:")
             playerTeam[currentPokemon].print_pkmn_moves()
@@ -167,7 +172,29 @@ def battle_random(playerTeam, pokemonList, playerTeamSize, numPokemon):
                 temp == playerTeam[currentPokemon].moves[2].name or
                 temp == playerTeam[currentPokemon].moves[3].name):
                 print("Your", playerTeam[currentPokemon].name, "used", temp)
-                input()
+                input("Press Enter to Continue")
+            else:
+                print("\nNot a valid move name")
+                time.sleep(1)
+
+
+        #if cpu pokemon is faster
+        if (playerTeam[currentPokemon].speed < CPU_pokemon.speed):
+            print("Opposing", CPU_pokemon.name, "has", CPU_pokemon.hp, "health")
+            print("Your", playerTeam[currentPokemon].name, "has", playerTeam[currentPokemon].hp, "health")
+            print("\nMovelist:")
+            playerTeam[currentPokemon].print_pkmn_moves()
+            print("\nSelect a Move")
+            temp = input()
+            if (temp == playerTeam[currentPokemon].moves[0].name or
+                temp == playerTeam[currentPokemon].moves[1].name or
+                temp == playerTeam[currentPokemon].moves[2].name or
+                temp == playerTeam[currentPokemon].moves[3].name):
+                print("Your", playerTeam[currentPokemon].name, "used", temp)
+                input("Press Enter to Continue")
+            else:
+                print("\nNot a valid move name")
+                time.sleep(1)
     return
 
 def battle_opponent(playerTeam):

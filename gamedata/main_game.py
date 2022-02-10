@@ -7,6 +7,7 @@ import time
 #import json
 import os
 import random
+import copy
 
 full_movelist = mv.import_moves(6) #6 moves
 full_pokemonlist = pk.import_pokemon(full_movelist, 3) #3 pkmn
@@ -138,9 +139,12 @@ def test_levelscaling():
     playerTeam[2].print_pokemon()
 
 playerTeam = []
-playerTeam.append(full_pokemonlist[0])
-playerTeam.append(full_pokemonlist[1])
-playerTeam.append(full_pokemonlist[2])
+playerTeam.append(copy.deepcopy(full_pokemonlist[0]))
+playerTeam.append(copy.deepcopy(full_pokemonlist[1]))
+playerTeam.append(copy.deepcopy(full_pokemonlist[2]))
+#test with all lvl 5 pkmn
+for mon in playerTeam:
+    mon.scale_stats(5)
 #test_levelscaling()
 #test_loadgame()
 pk.battle_random(playerTeam, full_pokemonlist, len(playerTeam), 3)
