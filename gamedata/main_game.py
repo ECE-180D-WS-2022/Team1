@@ -1,5 +1,6 @@
 import pokemon as pk
 import moves as mv
+import speech_recognition as sr
 import numpy as np
 import sys
 import time
@@ -8,9 +9,6 @@ import time
 import os
 import random
 import copy
-
-full_movelist = mv.import_moves(6) #6 moves
-full_pokemonlist = pk.import_pokemon(full_movelist, 3) #3 pkmn
 
 def save_game(playerTeam):
     if os.path.exists("savefile.txt"):
@@ -138,14 +136,24 @@ def test_levelscaling():
     playerTeam[2].scale_stats(100)
     playerTeam[2].print_pokemon()
 
-playerTeam = []
-playerTeam.append(copy.deepcopy(full_pokemonlist[0]))
-playerTeam.append(copy.deepcopy(full_pokemonlist[1]))
-playerTeam.append(copy.deepcopy(full_pokemonlist[2]))
-#test with all lvl 5 pkmn
-for mon in playerTeam:
-    mon.scale_stats(5)
-#test_levelscaling()
-#test_loadgame()
-pk.battle_random(playerTeam, full_pokemonlist, len(playerTeam), 3)
-print("done")
+if __name__ == "__main__":
+    full_movelist = mv.import_moves(6) #6 moves
+    full_pokemonlist = pk.import_pokemon(full_movelist, 3) #3 pkmn
+    playerTeam = []
+    playerTeam.append(copy.deepcopy(full_pokemonlist[0]))
+    playerTeam.append(copy.deepcopy(full_pokemonlist[1]))
+    playerTeam.append(copy.deepcopy(full_pokemonlist[2]))
+    #test with all lvl 5 pkmn
+    for mon in playerTeam:
+        mon.scale_stats(5)
+    #test_levelscaling()
+    #test_loadgame()
+
+    rec = sr.Recognizer()
+    mic = sr.Microphone()
+    print("A moment of silence, please...")
+    with mic as source: rec.adjust_for_ambient_noise(source)
+    print("Set minimum energy threshold to {}".format(rec.energy_threshold))
+
+    pk.battle_random(playerTeam, full_pokemonlist, len(playerTeam), 3, rec, mic)
+    print("done")

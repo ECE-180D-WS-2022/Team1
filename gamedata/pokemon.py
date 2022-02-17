@@ -6,6 +6,7 @@ import time
 import random
 import os
 import copy
+import speech_recognition as sr
 
 def import_pokemon(move_list, num_pkmn):
     pokemon_list = []
@@ -115,7 +116,30 @@ class pokemon:
         self.scale_others(level)
         return
 
-def battle_random(playerTeam, pokemonList, playerTeamSize, numPokemon):
+def listen_move(rec, mic):
+    move = None
+    print("\nSay your move...  ")
+    with mic as source: audio = rec.listen(source)
+    print("Got it!")
+
+    try:
+        # recognize speech using Google Speech Recognition
+        move = rec.recognize_google(audio)
+
+        # we need some special handling here to correctly print unicode characters to standard output
+        if str is bytes:  # this version of Python uses bytes for strings (Python 2)
+            move = move.encode("utf-8")
+    except sr.UnknownValueError:
+        print("Oops! Didn't catch that")
+    except sr.RequestError as e:
+        print("Uh oh! Couldn't request results from Google Speech Recognition service; {0}".format(e))
+
+    if move:
+        move = move.capitalize()
+
+    return move
+
+def battle_random(playerTeam, pokemonList, playerTeamSize, numPokemon, rec, mic):
     #have player battle against a random CPU
     battle_participants = []    #track number of participants
     health = []                 #array that stores team health
@@ -165,16 +189,17 @@ def battle_random(playerTeam, pokemonList, playerTeamSize, numPokemon):
             print("Your", playerTeam[currentPokemon].name, "has", playerTeam[currentPokemon].hp, "health")
             print("\nMovelist:")
             playerTeam[currentPokemon].print_pkmn_moves()
-            print("\nSelect a Move")
-            temp = input()
+
+            temp = listen_move(rec, mic)
+
             if (temp == playerTeam[currentPokemon].moves[0].name or
                 temp == playerTeam[currentPokemon].moves[1].name or
                 temp == playerTeam[currentPokemon].moves[2].name or
                 temp == playerTeam[currentPokemon].moves[3].name):
-                print("Your", playerTeam[currentPokemon].name, "used", temp)
+                print("Your", playerTeam[currentPokemon].name, "used", temp )
                 input("Press Enter to Continue")
             else:
-                print("\nNot a valid move name")
+                print("\n{} is not a valid move name".format(temp))
                 time.sleep(1)
 
 
@@ -184,8 +209,9 @@ def battle_random(playerTeam, pokemonList, playerTeamSize, numPokemon):
             print("Your", playerTeam[currentPokemon].name, "has", playerTeam[currentPokemon].hp, "health")
             print("\nMovelist:")
             playerTeam[currentPokemon].print_pkmn_moves()
-            print("\nSelect a Move")
-            temp = input()
+
+            temp = listen_move(rec, mic)
+
             if (temp == playerTeam[currentPokemon].moves[0].name or
                 temp == playerTeam[currentPokemon].moves[1].name or
                 temp == playerTeam[currentPokemon].moves[2].name or
