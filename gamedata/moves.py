@@ -1,5 +1,6 @@
 import sys
 import time
+import random
 #import pokepy
 
 def import_moves(num_moves):
@@ -15,33 +16,39 @@ def import_moves(num_moves):
 
     #append each move into full movelist with data
     for i in range(num_moves):
-        moveName = data[6*i]
-        moveType = data[(6*i) + 1]
-        movePower = int(data[(6*i) + 2])
-        movePP = int(data[(6*i) + 3])
-        moveAcc = float(data[(6*i) + 4])
-        moveDesc = data[(6*i) + 5]
-        object = move(moveName, moveType, movePower, movePP, moveAcc, moveDesc)
+        moveName = data[7*i]
+        moveType = data[(7*i) + 1]
+        movePower = int(data[(7*i) + 2])
+        movePP = int(data[(7*i) + 3])
+        moveAcc = float(data[(7*i) + 4])
+        moveDesc = data[(7*i) + 5]
+        special = (data[(7*i) + 6] == "special")
+        object = move(moveName, moveType, movePower, movePP, moveAcc, moveDesc, special)
         movelist.append(object)
 
     return movelist
 
 class move:
-    def __init__(self, name, type, power, pp, accuracy, description):
+    def __init__(self, name, type, power, pp, accuracy, description, isSpecial):
         self.name = name
         self.type = type
         self.power = power
         self.pp = pp
         self.acc = accuracy
         self.desc = description
+        self.special = isSpecial
 
     def print_move(self):
         print(self.name)
         print("Move Type: ", self.type)
+        if(self.special):
+            print("Special Attack")
+        else:
+            print("Physical Attack")
+        print(self.desc)
         print("Move Power: ", self.power)
         print("Move PP: ", self.pp)
         print("Move Accuracy: ", self.acc)
-        print(self.desc)
         return
 
     def find_effectiveness(self, pkmnType):
@@ -75,6 +82,25 @@ class move:
         multiplier = effectiveness_array[attackType][pkmnType_index]
         return multiplier
 
-    def calculate_damage(self, selfType, targetType):
+    def calculate_damage(self, playerPkmn, targetPkmn):
+        '''
+        playerPkmn: pokemon object using move
+        targetPkmn: pokemon object of move target
+
+        returns: final damage
+
+        '''
+        random_mult = random.randrange(85,100) * 0.01       #random multiplier from 0.85 to 1
         damage = 0
+        stab = 1
+        multiplier = self.find_effectiveness(targetPkmn.type)
+        if (playerPkmn.type == self.type): #implement same type attack bonus
+            stab = 1.5
+
+        #special attack calc
+        if (self.special):
+            damage = ((((((2*playerPkmn.lvl)/5)+2)*self.power*(playerPkmn.spatk/targetPkmn.spdef))/50)+2)*stab*multiplier*random_mult
+        #physical attack calc
+        else:
+            damage = ((((((2*playerPkmn.lvl)/5)+2)*self.power*(playerPkmn.atk/targetPkmn.defense))/50)+2)*stab*multiplier*random_mult
         return damage
