@@ -6,6 +6,8 @@ import numpy as np
 import argparse
 import os
 import csv
+import pandas as pd
+import numpy as np
 ##### Command line interface to pass in name ####
 parser = argparse.ArgumentParser(description="Start the game by passing in python3 client.py username")
 parser.add_argument('username', type=str, help="username used in game")
@@ -14,25 +16,23 @@ print(args.username)
 
 ##### Write a new folder for username ####
 path = "../data/users/" + args.username
-os.mkdir(path, 0o777)
+# os.mkdir(path, 0o777)
 
 #### write into the folder gamestats.csv and wins.csv
 ## gamestats.csv ##
-fieldnames = ['games played', 'wins']
+fieldnames = ['games_played', 'wins']
 starting_entries = [0,0]
-
-with open(path + '/gamestats.csv', 'w') as csvfile:
-  filewriter = csv.writer(csvfile, delimiter=',')
-  filewriter.writerow(fieldnames)
-  filewriter.writerow(starting_entries)
+game_stats_df = pd.DataFrame(columns = fieldnames)
+game_stats_df = game_stats_df.append({'games_played': 0, 'wins': 0}, ignore_index=True)
+game_stats_df.to_csv(path + '/gamestats.csv', index=False, quoting=csv.QUOTE_NONNUMERIC)
 
 ## teams.csv ##
 fieldnames = ['name', 'type', 'hp', 'attack', 'defense', 'special attack', 'special defense', 'speed', 'xp reward', 'move1', 'move2', 'move3', 'move4', 'xp accumulated', 'level']
-# TO DO: Read from pokemon.csv into the team.csv
-with open(path + '/team.csv', 'w') as csvfile:
-  filewriter = csv.writer(csvfile, delimiter=',')
-  filewriter.writerow(fieldnames)
-  # filewriter.writerow(starting_entries)
+df = pd.read_csv("../data/pokemon.csv")
+team_df = pd.DataFrame(columns = fieldnames)
+team_df = team_df.append(df.loc[df['name'] == 'Pikachu'], ignore_index=True)
+team_df.to_csv(path + '/team.csv', index=False, quoting=csv.QUOTE_NONNUMERIC)
+
 
 
 # # The callback for when the client receives a CONNACK response from the server.
