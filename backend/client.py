@@ -45,9 +45,11 @@ else:
   Notes:
     Handling how to deal with someone sending a game request in the middle of training or some shit
 '''
+in_game = 0
+opponent = ""
 def on_connect(client, userdata, flags, rc):
   print("Connection returned result: "+str(rc))
-  client.subscribe("ece180d/justin", qos=1)
+  client.subscribe("ece180d/" + args.username, qos=1)
 
 # The callback of the client when it disconnects. 
 def on_disconnect(client, userdata, rc): 
@@ -115,6 +117,15 @@ while(True):
     pass
 
 ################################################################################################################
+
+
+###### END ######################################################################################################
+'''
+At the end write persistently to all the files that were changed
+'''
+game_stats_df.to_csv(path + '/gamestats.csv', index=False, quoting=csv.QUOTE_NONNUMERIC)
+team_df.to_csv(path + '/team.csv', index=False, quoting=csv.QUOTE_NONNUMERIC)
+#################################################################################################################
 
 # # The callback for when the client receives a CONNACK response from the server.
 # def on_connect(client, userdata, flags, rc):
