@@ -41,6 +41,10 @@ else:
 #################################################################################################################
 
 ################################# MQTT SETUP ###################################################################
+'''
+  Notes:
+    Handling how to deal with someone sending a game request in the middle of training or some shit
+'''
 def on_connect(client, userdata, flags, rc):
   print("Connection returned result: "+str(rc))
   client.subscribe("ece180d/justin", qos=1)
