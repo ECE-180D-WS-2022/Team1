@@ -40,6 +40,41 @@ else:
   team_df = pd.read_csv(path + '/team.csv')
 #################################################################################################################
 
+################################# MQTT SETUP ###################################################################
+def on_connect(client, userdata, flags, rc):
+  print("Connection returned result: "+str(rc))
+  client.subscribe("ece180d/justin", qos=1)
+
+# The callback of the client when it disconnects. 
+def on_disconnect(client, userdata, rc): 
+    if rc != 0: 
+        print('Unexpected Disconnect')
+    else:
+        print('Expected Disconnect')
+
+# The default message callback. 
+def on_message(client, userdata, message): 
+    message.payload.split(" ")
+    damage_done = int(message.payload)
+    print('Damage done is:"' + str(message.payload))
+
+# 1. create a client instance. 
+client = mqtt.Client()
+# add additional client options (security, certifications, etc.)
+# many default options should be good to start off.
+# add callbacks to client. 
+client.on_connect = on_connect
+client.on_disconnect = on_disconnect
+client.on_message = on_message
+# 2. connect to a broker using one of the connect*() functions. 
+client.connect_async("test.mosquitto.org")
+# 3. call one of the loop*() functions to maintain network traffic flow with the broker. 
+client.loop_start()
+# 4. use subscribe() to subscribe to a topic and receive messages. 
+# 5. use publish() to publish messages to the broker. 
+# payload must be a string, bytearray, int, float or None.
+################################################################################################################
+
 
 ###### GAME LOGIC SPLIT #########################################################################################
 '''
@@ -74,6 +109,7 @@ while(True):
   #### Battling Path ####
   if decision == '2':
     pass
+
 ################################################################################################################
 
 # # The callback for when the client receives a CONNACK response from the server.
