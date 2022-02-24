@@ -3,47 +3,76 @@
 
 import paho.mqtt.client as mqtt
 import numpy as np
+import argparse
+import os
+import csv
+##### Command line interface to pass in name ####
+parser = argparse.ArgumentParser(description="Start the game by passing in python3 client.py username")
+parser.add_argument('username', type=str, help="username used in game")
+args = parser.parse_args()
+print(args.username)
 
-# 0. define callbacks - functions that run when events happen. 
+##### Write a new folder for username ####
+path = "../data/users/" + args.username
+os.mkdir(path, 0o777)
 
-# The callback for when the client receives a CONNACK response from the server.
-def on_connect(client, userdata, flags, rc):
-  print("Connection returned result: "+str(rc))
-  client.subscribe("ece180d/justin", qos=1)
+#### write into the folder gamestats.csv and wins.csv
+## gamestats.csv ##
+fieldnames = ['games played', 'wins']
+starting_entries = [0,0]
 
-# The callback of the client when it disconnects. 
-def on_disconnect(client, userdata, rc): 
-    if rc != 0: 
-        print('Unexpected Disconnect')
-    else:
-        print('Expected Disconnect')
+with open(path + '/gamestats.csv', 'w') as csvfile:
+  filewriter = csv.writer(csvfile, delimiter=',')
+  filewriter.writerow(fieldnames)
+  filewriter.writerow(starting_entries)
 
-# The default message callback. 
-def on_message(client, userdata, message): 
-    message.payload.split(" ")
-    damage_done = int(message.payload)
-    print('Damage done is:"' + str(message.payload))
+## teams.csv ##
+fieldnames = ['name', 'type', 'hp', 'attack', 'defense', 'special attack', 'special defense', 'speed', 'xp reward', 'move1', 'move2', 'move3', 'move4', 'xp accumulated', 'level']
+# TO DO: Read from pokemon.csv into the team.csv
+with open(path + '/team.csv', 'w') as csvfile:
+  filewriter = csv.writer(csvfile, delimiter=',')
+  filewriter.writerow(fieldnames)
+  # filewriter.writerow(starting_entries)
 
-# 1. create a client instance. 
-client = mqtt.Client()
-# add additional client options (security, certifications, etc.)
-# many default options should be good to start off.
-# add callbacks to client. 
-client.on_connect = on_connect
-client.on_disconnect = on_disconnect
-client.on_message = on_message
-# 2. connect to a broker using one of the connect*() functions. 
-client.connect_async("test.mosquitto.org")
-# 3. call one of the loop*() functions to maintain network traffic flow with the broker. 
-client.loop_start()
-# 4. use subscribe() to subscribe to a topic and receive messages. 
-# 5. use publish() to publish messages to the broker. 
-# payload must be a string, bytearray, int, float or None.
-print('Publishing...')
-for i in range(10):  
-  client.publish('ece180d/test', f"ping: {i}", qos=1)
-while True:
-  pass
-# 6. use disconnect() to disconnect from the broker. 
-client.loop_stop()
-client.disconnect()
+
+# # The callback for when the client receives a CONNACK response from the server.
+# def on_connect(client, userdata, flags, rc):
+#   print("Connection returned result: "+str(rc))
+#   client.subscribe("ece180d/justin", qos=1)
+
+# # The callback of the client when it disconnects. 
+# def on_disconnect(client, userdata, rc): 
+#     if rc != 0: 
+#         print('Unexpected Disconnect')
+#     else:
+#         print('Expected Disconnect')
+
+# # The default message callback. 
+# def on_message(client, userdata, message): 
+#     message.payload.split(" ")
+#     damage_done = int(message.payload)
+#     print('Damage done is:"' + str(message.payload))
+
+# # 1. create a client instance. 
+# client = mqtt.Client()
+# # add additional client options (security, certifications, etc.)
+# # many default options should be good to start off.
+# # add callbacks to client. 
+# client.on_connect = on_connect
+# client.on_disconnect = on_disconnect
+# client.on_message = on_message
+# # 2. connect to a broker using one of the connect*() functions. 
+# client.connect_async("test.mosquitto.org")
+# # 3. call one of the loop*() functions to maintain network traffic flow with the broker. 
+# client.loop_start()
+# # 4. use subscribe() to subscribe to a topic and receive messages. 
+# # 5. use publish() to publish messages to the broker. 
+# # payload must be a string, bytearray, int, float or None.
+# print('Publishing...')
+# for i in range(10):  
+#   client.publish('ece180d/test', f"ping: {i}", qos=1)
+# while True:
+#   pass
+# # 6. use disconnect() to disconnect from the broker. 
+# client.loop_stop()
+# client.disconnect()
