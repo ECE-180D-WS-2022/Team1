@@ -52,7 +52,7 @@ if not os.path.isdir(path):
         "xp_accumulated",
         "level",
     ]
-    df = pd.read_csv("../data/pokemon.csv")
+    df = pd.read_csv("data/pokemon.csv")
     team_df = pd.DataFrame(columns=fieldnames)
     team_df = team_df.append(df.loc[df["name"] == "Pikachu"], ignore_index=True)
     team_df.to_csv(path + "/team.csv", index=False, quoting=csv.QUOTE_NONNUMERIC)
