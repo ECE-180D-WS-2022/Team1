@@ -14,11 +14,10 @@ import numpy as np
 parser = argparse.ArgumentParser(description="Start the game by passing in python3 client.py username")
 parser.add_argument('username', type=str, help="username used in game")
 args = parser.parse_args()
-print(args.username)
 
 ##### Write a new folder for username #####
 path = "../data/users/" + args.username
-if os.path.isdir(path):
+if not os.path.isdir(path):
   # os.mkdir(path, 0o777)
 
   ##### write into the folder gamestats.csv and wins.csv ######
@@ -59,6 +58,13 @@ def on_disconnect(client, userdata, rc):
         print('Expected Disconnect')
 
 # The default message callback. 
+"""
+Request game: "0,username"
+Respond request: "1,[0 - deny/1 - accept]"
+Send team: "2,[json]"
+Send move: "3,pokemon,movename,stat,amount"
+Game over?: "4,winner"
+"""
 def on_message(client, userdata, message): 
     message.payload.split(" ")
     damage_done = int(message.payload)
@@ -88,10 +94,9 @@ client.loop_start()
     Have to be able to loop back onto this
     Also have to be able to handle the case of someone sending a battle request(maybe can have both be requesting for battle)
 '''
-
+end_flag = 0
 while(True):
   decision = input("Enter (1) for Training (2) for Battling:\n")
-
   #### Training Path ####
   if decision == '1':
     print("Available Pokemons are:")
@@ -115,6 +120,11 @@ while(True):
   #### Battling Path ####
   if decision == '2':
     pass
+  end_flag = input("Press (1) to continue to top of screen or (2) to exit:\n")
+  if end_flag == 2:
+    print("goodbye!")
+    break
+
 
 ################################################################################################################
 
