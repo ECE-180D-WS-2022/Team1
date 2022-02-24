@@ -8,32 +8,73 @@ import os
 import csv
 import pandas as pd
 import numpy as np
-##### Command line interface to pass in name ####
+
+################################# SETUP ########################################################################
+##### Command line interface to pass in name #####
 parser = argparse.ArgumentParser(description="Start the game by passing in python3 client.py username")
 parser.add_argument('username', type=str, help="username used in game")
 args = parser.parse_args()
 print(args.username)
 
-##### Write a new folder for username ####
+##### Write a new folder for username #####
 path = "../data/users/" + args.username
-# os.mkdir(path, 0o777)
+if os.path.isdir(path):
+  # os.mkdir(path, 0o777)
 
-#### write into the folder gamestats.csv and wins.csv
-## gamestats.csv ##
-fieldnames = ['games_played', 'wins']
-starting_entries = [0,0]
-game_stats_df = pd.DataFrame(columns = fieldnames)
-game_stats_df = game_stats_df.append({'games_played': 0, 'wins': 0}, ignore_index=True)
-game_stats_df.to_csv(path + '/gamestats.csv', index=False, quoting=csv.QUOTE_NONNUMERIC)
+  ##### write into the folder gamestats.csv and wins.csv ######
+  ## gamestats.csv ##
+  fieldnames = ['games_played', 'wins']
+  starting_entries = [0,0]
+  game_stats_df = pd.DataFrame(columns = fieldnames)
+  game_stats_df = game_stats_df.append({'games_played': 0, 'wins': 0}, ignore_index=True)
+  game_stats_df.to_csv(path + '/gamestats.csv', index=False, quoting=csv.QUOTE_NONNUMERIC)
 
-## teams.csv ##
-fieldnames = ['name', 'type', 'hp', 'attack', 'defense', 'special attack', 'special defense', 'speed', 'xp reward', 'move1', 'move2', 'move3', 'move4', 'xp accumulated', 'level']
-df = pd.read_csv("../data/pokemon.csv")
-team_df = pd.DataFrame(columns = fieldnames)
-team_df = team_df.append(df.loc[df['name'] == 'Pikachu'], ignore_index=True)
-team_df.to_csv(path + '/team.csv', index=False, quoting=csv.QUOTE_NONNUMERIC)
+  ## teams.csv ##
+  fieldnames = ['name', 'type', 'hp', 'attack', 'defense', 'special attack', 'special defense', 'speed', 'xp reward', 'move1', 'move2', 'move3', 'move4', 'xp_accumulated', 'level']
+  df = pd.read_csv("../data/pokemon.csv")
+  team_df = pd.DataFrame(columns = fieldnames)
+  team_df = team_df.append(df.loc[df['name'] == 'Pikachu'], ignore_index=True)
+  team_df.to_csv(path + '/team.csv', index=False, quoting=csv.QUOTE_NONNUMERIC)
+else:
+  game_stats_df = pd.read_csv(path + '/gamestats.csv')
+  team_df = pd.read_csv(path + '/team.csv')
+#################################################################################################################
 
 
+###### GAME LOGIC SPLIT #########################################################################################
+'''
+  Notes:
+    Have to be able to loop back onto this
+    Also have to be able to handle the case of someone sending a battle request(maybe can have both be requesting for battle)
+'''
+
+while(True):
+  decision = input("Enter (1) for Training (2) for Battling:\n")
+
+  #### Training Path ####
+  if decision == '1':
+    print("Available Pokemons are:")
+    print(team_df['name'].tolist())
+    working_pokemon = ""
+    while working_pokemon not in team_df['name'].tolist():
+      working_pokemon = input("Please type Pokemon name you want to train\n")
+    curr_accumulated_xp = 0
+    
+    ## Pose Recognition to train ##
+    while True:
+      # TO DO: Incorporate Pose Recognition Here #
+      curr_accumulated_xp = 20
+      break
+    team_df.loc[team_df.name == working_pokemon, 'xp_accumulated'] += curr_accumulated_xp
+    
+    # TO DO: Leveling up system logic here #
+    
+
+
+  #### Battling Path ####
+  if decision == '2':
+    pass
+################################################################################################################
 
 # # The callback for when the client receives a CONNACK response from the server.
 # def on_connect(client, userdata, flags, rc):
