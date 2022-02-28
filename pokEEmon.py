@@ -4,6 +4,7 @@ import paho.mqtt.client as mqtt
 import argparse
 import os
 import csv
+import time
 import pandas as pd
 import tkinter as tk
 from functools import partial
@@ -25,19 +26,25 @@ class Game:
         self.home_frame = None
         self.request_frame = None
         self.client = None
+        self.connected = False
 
     def connect_mqtt(self):
         print("Connecting to MQTT")
         self.client = mqtt.Client()
         self.client.on_connect = self.on_connect_mqtt
-        self.client.connect("test.mosquitto.org")
         self.client.on_message = self.rcv_request_mqtt
-        self.client.subscribe("ece180d/pokEEmon/" + self.username + "/request", qos=1)
-        print("Subscribed to " + "ece180d/pokEEmon/" + self.username + "/request")
+        self.client.connect("test.mosquitto.org")
         self.client.loop_start()
-
+        while not self.connected:
+            time.sleep(0.1)            
+       
     def on_connect_mqtt(self, client, userdata, flags, rc):
         print("Connection returned result: " + str(rc))
+        if rc == 0:
+            print("Connection success")
+            self.connected = True
+        else:
+            print("Connection failed")
 
     def rcv_request_mqtt(self, client, userdata, message):
         print(message.payload)
@@ -47,6 +54,9 @@ class Game:
         if prev_frame:
             prev_frame.pack_forget()
             
+        self.client.subscribe("ece180d/pokEEmon/" + self.username + "/request", qos=1)
+        print("Subscribed to " + "ece180d/pokEEmon/" + self.username + "/request")
+
         if not self.window:
             self.window = tk.Tk()
         if not self.home_frame:
@@ -63,6 +73,9 @@ class Game:
     def request_screen(self):
         print("Request screen")
         self.home_frame.pack_forget()
+
+        self.client.unsubscribe("ece180d/pokEEmon/" + self.username + "/request")
+        
         if not self.request_frame:
             self.request_frame = tk.Frame(self.window)
             request_label = tk.Label(self.request_frame, text="Opponent username")
@@ -82,8 +95,10 @@ class Game:
 
     def make_request(self, entry):
         opp_username = entry.get().strip()
+        request_msg = ""
         if opp_username:
             print("Requesting game with: " +  opp_username)
+            self.client.publish("ece180d/pokEEmon/" + opp_username + "/request", request_msg)
         else:
             print("Invalid username: " +  opp_username)
         
