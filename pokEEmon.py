@@ -18,10 +18,29 @@ parser = argparse.ArgumentParser(
 parser.add_argument("username", type=str, help="your in-game username")
 args = parser.parse_args()
 print("Welcome " + args.username)
+class User:
+    def __init__(self, username):
+        self.username = username
+        self.path = "data/users/" + self.username
+        self.gamestats_df, self.team_df = self.get_user_files()      
+    
+    def get_user_files(self):
+        """
+        get the appropiate gamestats and team files if it exists, else create the folder and copy in the default
+        """
+        if os.path.isdir(self.path):
+            game_stats_df = pd.read_csv(self.path + "/gamestats.csv")
+            team_df = pd.read_csv(self.path + "/team.csv")
+        else:
+            os.mkdir(self.path, 0o777)
+            game_stats_df = pd.read_csv("data/users/default/gamestats.csv")
+            team_df = pd.read_csv("data/users/default/team.csv")
+        return game_stats_df, team_df
 
 class Game:
     def __init__(self, username):
         self.username = username
+        self.user = User(username)
         self.window = None
         self.home_frame = None
         self.request_frame = None
@@ -109,6 +128,8 @@ class Game:
 
     def exit_game(self):
         print("Exiting game")
+        self.user.gamestats_df.to_csv(self.user.path + "/gamestats.csv", index = False, quoting=csv.QUOTE_NONNUMERIC)
+        self.user.team_df.to_csv(self.user.path + "/team.csv", index=False, quoting=csv.QUOTE_NONNUMERIC)
         self.window.destroy()
         
         
