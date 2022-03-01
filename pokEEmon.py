@@ -8,6 +8,7 @@ import time
 import pandas as pd
 import tkinter as tk
 from functools import partial
+import random
 
 ################################# SETUP ########################################################################
 ##### Command line interface to pass in name #####
@@ -24,15 +25,18 @@ class Game:
         self.username = username
         self.window = None
         self.home_frame = None
+        self.receive_frame = None
         self.request_frame = None
+        self.response_frame = None
         self.client = None
         self.connected = False
+        self.request_num = None
+        
 
     def connect_mqtt(self):
         print("Connecting to MQTT")
         self.client = mqtt.Client()
         self.client.on_connect = self.on_connect_mqtt
-        self.client.on_message = self.rcv_request_mqtt
         self.client.connect("test.mosquitto.org")
         self.client.loop_start()
         while not self.connected:
@@ -49,11 +53,23 @@ class Game:
     def rcv_request_mqtt(self, client, userdata, message):
         print(message.payload)
 
+    def rcv_response_mqtt(self, client, userdata, message):
+        msg = message.payload
+        print(msg)
+        
+        msg = msg.split(",")
+        if msg and msg[0] == "response" and int(msg[2]) == self.request_num:
+            print(msg)
+            print("Starting game with: " + msg[1])
+        else:
+            print("Received unexpected message")
+
     def home_screen(self, prev_frame = None):
         print("Home screen")
         if prev_frame:
             prev_frame.pack_forget()
             
+        self.client.on_message = self.rcv_request_mqtt
         self.client.subscribe("ece180d/pokEEmon/" + self.username + "/request", qos=1)
         print("Subscribed to " + "ece180d/pokEEmon/" + self.username + "/request")
 
@@ -70,9 +86,25 @@ class Game:
 
         self.home_frame.pack()
 
-    def request_screen(self):
+    def receive_screen(self, opp_username):
+        print("Receive screen")
+        self.home_screen.pack_forget()
+        if self.receive_frame:
+            self.receive_frame.destroy()
+
+        self.client.unsubscribe("ece180d/pokEEmon/" + self.username + "/request")
+
+        self.receive_frame = tk.Frame(self.window)
+        receive_label = tk.Label(self.receive_frame, text="Battle request from " + opp_username)
+        accept_button = tk.Button(self.receive_frame, text = "Accept", command = self.exit_game)
+        decline_button = tk.Button(self.receive_frame, text = "Decline", command = partial(self.home_screen, self.receive_frame)
+        
+
+    def request_screen(self, prev_screen = None):
         print("Request screen")
-        self.home_frame.pack_forget()
+
+        if prev_screen:
+            prev_screen.pack_forget()
 
         self.client.unsubscribe("ece180d/pokEEmon/" + self.username + "/request")
         
@@ -90,12 +122,32 @@ class Game:
         self.request_frame.pack()
 
 
+    def response_screen(self, username):
+        print("Response screen")
+        self.request_frame.pack_forget()
+        if self.response_frame:
+            self.response_frame.destroy()
+
+
+        self.client.on_message = self.rcv_response_mqtt
+        self.client.subscribe("ece180d/pokEEmon/" + self.username + "/response")
+
+        
+        self.response_frame = tk.Frame(self.window)
+        request_label = tk.Label(self.request_frame, text="Waiting for " + username)
+        cancel_button = tk.Button(self.request_frame, text = "Cancel", command = partial(self.home_screen, partial(self.request_screen, self.response_frame))
+        request_label.pack()
+        cancel_button.pack()
+
+        self.response_frame.pack()
+        
     def train_screen(self):
         pass
 
     def make_request(self, entry):
         opp_username = entry.get().strip()
-        request_msg = ""
+        self.request_num = random.randint()
+        request_msg = "request," + self.username + ",{}".replace(self.request_num)
         if opp_username:
             print("Requesting game with: " +  opp_username)
             self.client.publish("ece180d/pokEEmon/" + opp_username + "/request", request_msg)
