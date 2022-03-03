@@ -56,9 +56,18 @@ class Battle:
                 hp = 0
             self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("hp")] = hp
             self.move_screen(self.wait_frame)
+        if msg and msg[0] == "change" and int(msg[2]) == self.battle_id:
+            self.opp_pokemon = int(msg[3])
+            self.wait_screen(self.wait_frame)
         else:
             print("Received unexpected message")
         
+    def sel_pokemon(self, index):
+        self.curr_pokemon = index
+        choose_msg = "change,{},{},{}".format(self.user.username, self.battle_id, index)
+        self.client.publish("ece180d/pokEEmon/" + self.opp_user.username + "/change", choose_msg)
+        self.move_screen(self.choose_frame)
+
     def do_move(self, move):
         movename = self.user.team_df.iloc[self.curr_pokemon][move]
         #TODO get damage
@@ -88,11 +97,17 @@ class Battle:
 
         self.wait_frame = tk.Frame(self.window)
         wait_label = tk.Label(self.wait_frame, text="Waiting for {} to move".format(self.opp_user.username))
-        pokemon_label = tk.Label(self.wait_frame, text=self.user.team_df.iloc[self.curr_pokemon]["name"])
-        health_label = tk.Label(self.wait_frame, text="HP: {}".format(self.user.team_df.iloc[self.curr_pokemon]["hp"]))
+        user_pokemon_name = self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("name")]
+        userteam_string = self.user.team_df.loc[:, ["name", "hp"]].to_string(index=False)
+        userteam_string = userteam_string.replace(user_pokemon_name, "**" + user_pokemon_name)
+        userteam_label = tk.Label(self.wait_frame, text="\nYour team: \n{}\n".format(userteam_string))
+        opp_pokemon_name = self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("name")]
+        oppteam_string = self.opp_user.team_df.loc[:, ["name", "hp"]].to_string(index=False)
+        oppteam_string = oppteam_string.replace(opp_pokemon_name, "**" + opp_pokemon_name)
+        oppteam_label = tk.Label(self.wait_frame, text="\nOpponent team: \n{}\n".format(oppteam_string))
         wait_label.pack()
-        pokemon_label.pack()
-        health_label.pack()
+        userteam_label.pack()
+        oppteam_label.pack()
         self.wait_frame.pack()
         
     def move_screen(self, prev_frame = None):
@@ -110,26 +125,45 @@ class Battle:
         
         self.move_frame = tk.Frame(self.window)
         move_label = tk.Label(self.move_frame, text="Choose your move")
-        pokemon_label = tk.Label(self.move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["name"])
-        health_label = tk.Label(self.move_frame, text="HP: {}".format(self.user.team_df.iloc[self.curr_pokemon]["hp"]))
         move1_button = tk.Button(self.move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move1"], command = partial(self.do_move, "move1"))
         move2_button = tk.Button(self.move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move2"], command = partial(self.do_move, "move2"))
         move3_button = tk.Button(self.move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move3"], command = partial(self.do_move, "move3"))
         move4_button = tk.Button(self.move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move4"], command = partial(self.do_move, "move4"))
+        user_pokemon_name = self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("name")]
+        userteam_string = self.user.team_df.loc[:, ["name", "hp"]].to_string(index=False)
+        userteam_string = userteam_string.replace(user_pokemon_name, "**" + user_pokemon_name)
+        userteam_label = tk.Label(self.move_frame, text="\nYour team: \n{}\n".format(userteam_string))
+        opp_pokemon_name = self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("name")]
+        oppteam_string = self.opp_user.team_df.loc[:, ["name", "hp"]].to_string(index=False)
+        oppteam_string = oppteam_string.replace(opp_pokemon_name, "**" + opp_pokemon_name)
+        oppteam_label = tk.Label(self.move_frame, text="\nOpponent team: \n{}\n".format(oppteam_string))
         change_button = tk.Button(self.move_frame, text="Change pokEEmon", command = self.choose_screen)
         move_label.pack()
-        pokemon_label.pack()
-        health_label.pack()
         move1_button.pack()
         move2_button.pack()
         move3_button.pack()
         move4_button.pack()
+        userteam_label.pack()
+        oppteam_label.pack()
         change_button.pack()
 
         self.move_frame.pack()
 
     def choose_screen(self, prev_frame = None):
-        pass
+        if self.move_frame:
+            self.move_frame.pack_forget()
+        if self.choose_frame:
+            self.choose_frame.destroy()
+
+        self.choose_frame = tk.Frame(self.window)
+        choose_label = tk.Label(self.choose_frame, text="Choose your pokemon")
+        choose_label.pack()
+        user_pokemon = self.user.team_df.loc[:,["name","hp"]]
+        for row in user_pokemon.itertuples():
+            if row.hp > 0:
+                pokemon_button = tk.Button(self.choose_frame, text=row.name, command = partial(self.sel_pokemon, row.Index))
+                pokemon_button.pack()
+        self.choose_frame.pack()
 
 class User:    
     def __init__(self, username = None):
