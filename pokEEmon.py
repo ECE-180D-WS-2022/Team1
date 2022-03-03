@@ -26,12 +26,13 @@ args = parser.parse_args()
 print("Welcome " + args.username)
 
 class Battle:
-    def __init__(self, user, battle_id, opp_user, window, client):
+    def __init__(self, user, battle_id, opp_user, window, client, home):
         self.user = copy.deepcopy(user)
         self.battle_id = battle_id
         self.opp_user = copy.deepcopy(opp_user)
         self.window = window
         self.client = client
+        self.home = home
         self.curr_pokemon = 0
         self.opp_pokemon = 0
         self.wait_frame = None
@@ -55,8 +56,12 @@ class Battle:
             if hp < 0:
                 hp = 0
             self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("hp")] = hp
-            self.move_screen(self.wait_frame)
-        if msg and msg[0] == "change" and int(msg[2]) == self.battle_id:
+            if  self.user.team_df[self.user.team_df["hp"] > 0].empty:
+                print("You lost")
+                self.home(self.wait_frame)
+            else:
+                self.move_screen(self.wait_frame)
+        elif msg and msg[0] == "change" and int(msg[2]) == self.battle_id:
             self.opp_pokemon = int(msg[3])
             self.wait_screen(self.wait_frame)
         else:
@@ -67,7 +72,7 @@ class Battle:
         choose_msg = "change,{},{},{}".format(self.user.username, self.battle_id, index)
         self.client.publish("ece180d/pokEEmon/" + self.opp_user.username + "/change", choose_msg)
         self.move_screen(self.choose_frame)
-
+        
     def do_move(self, move):
         movename = self.user.team_df.iloc[self.curr_pokemon][move]
         #TODO get damage
@@ -79,7 +84,11 @@ class Battle:
         self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("hp")] = opp_hp
         move_msg = "move,{},{},{}".format(self.user.username, self.battle_id, movename)
         self.client.publish("ece180d/pokEEmon/" + self.opp_user.username + "/move", move_msg)
-        self.wait_screen(self.move_frame)
+        if self.opp_user.team_df[self.opp_user.team_df["hp"] > 0].empty:
+            print("You won!")
+            self.home(self.move_frame)
+        else:
+            self.wait_screen(self.move_frame)
         
 
     def wait_screen(self, prev_frame = None):
@@ -124,11 +133,22 @@ class Battle:
         print("Unsubscribed to " + "ece180d/pokEEmon/" + self.user.username + "/change")         
         
         self.move_frame = tk.Frame(self.window)
-        move_label = tk.Label(self.move_frame, text="Choose your move")
-        move1_button = tk.Button(self.move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move1"], command = partial(self.do_move, "move1"))
-        move2_button = tk.Button(self.move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move2"], command = partial(self.do_move, "move2"))
-        move3_button = tk.Button(self.move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move3"], command = partial(self.do_move, "move3"))
-        move4_button = tk.Button(self.move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move4"], command = partial(self.do_move, "move4"))
+        
+        if self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("hp")] > 0:
+            move_label = tk.Label(self.move_frame, text="Choose your move")
+            move1_button = tk.Button(self.move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move1"], command = partial(self.do_move, "move1"))
+            move2_button = tk.Button(self.move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move2"], command = partial(self.do_move, "move2"))
+            move3_button = tk.Button(self.move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move3"], command = partial(self.do_move, "move3"))
+            move4_button = tk.Button(self.move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move4"], command = partial(self.do_move, "move4"))
+            move_label.pack()
+            move1_button.pack()
+            move2_button.pack()
+            move3_button.pack()
+            move4_button.pack()
+        else:
+            change_label = tk.Label(self.move_frame, text="Change your pokemon")
+            change_label.pack()
+        
         user_pokemon_name = self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("name")]
         userteam_string = self.user.team_df.loc[:, ["name", "hp"]].to_string(index=False)
         userteam_string = userteam_string.replace(user_pokemon_name, "**" + user_pokemon_name)
@@ -138,11 +158,6 @@ class Battle:
         oppteam_string = oppteam_string.replace(opp_pokemon_name, "**" + opp_pokemon_name)
         oppteam_label = tk.Label(self.move_frame, text="\nOpponent team: \n{}\n".format(oppteam_string))
         change_button = tk.Button(self.move_frame, text="Change pokEEmon", command = self.choose_screen)
-        move_label.pack()
-        move1_button.pack()
-        move2_button.pack()
-        move3_button.pack()
-        move4_button.pack()
         userteam_label.pack()
         oppteam_label.pack()
         change_button.pack()
@@ -263,7 +278,7 @@ class Game:
                 self.opp_user = User()
                 self.opp_user.username = msg[1]
                 self.opp_user.team_df = pd.read_csv(io.StringIO(msg[4]), sep='\s+')
-                b = Battle(self.user, self.request_num, self.opp_user, self.window, self.client)
+                b = Battle(self.user, self.request_num, self.opp_user, self.window, self.client, self.home_screen)
                 b.wait_screen(self.response_frame)
             else:
                 print("Battle declined by: " + msg[1])
@@ -390,7 +405,7 @@ class Game:
         self.client.publish("ece180d/pokEEmon/" + opp_username + "/response", response_msg)
         self.client.unsubscribe("ece180d/pokEEmon/" + self.user.username + "/cancel")
         print("Unsubscribed from " + "ece180d/pokEEmon/" + self.user.username + "/cancel")
-        b = Battle(self.user, self.request_num, self.opp_user, self.window, self.client)
+        b = Battle(self.user, self.request_num, self.opp_user, self.window, self.client, self.home_screen)
         b.move_screen(self.receive_frame)
 
     def decline_request(self, opp_username):
