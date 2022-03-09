@@ -25,7 +25,7 @@ class App:
         self.btn_snapshot.pack(anchor=tkinter.CENTER, expand=True)
 
          # After it is called once, the update method will be automatically called every delay milliseconds
-        self.delay = 15
+        self.delay = 1
         self.update()
 
         self.window.mainloop()
