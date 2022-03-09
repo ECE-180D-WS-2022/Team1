@@ -2,9 +2,13 @@ import tkinter
 import cv2
 import PIL.Image, PIL.ImageTk
 import time
+import math
+import numpy as np
+import mediapipe as mp
+import matplotlib.pyplot as plt
+
 
 class App:
-<<<<<<< Updated upstream
      def __init__(self, window, window_title, video_source=0):
          self.window = window
          self.window.title(window_title)
@@ -22,6 +26,7 @@ class App:
          self.btn_snapshot.pack(anchor=tkinter.CENTER, expand=True)
 
          # After it is called once, the update method will be automatically called every delay milliseconds
+         self.delay = 15
          self.update()
 
          self.window.mainloop()
@@ -31,7 +36,7 @@ class App:
          ret, frame = self.vid.get_frame()
 
          if ret:
-             cv2.imwrite("frame-" + time.strftime("%d-%m-%Y-%H-%M-%S") + ".jpg", cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
+             cv2.imwrite("frame-" + time.strftime("%d-%m-%Y-%H-%M-%S") + ".jpg", frame)
 
      def update(self):
          # Get a frame from the video source
@@ -284,11 +289,6 @@ class MyVideoCapture:
 
              #Return the output image and the classified label.
              return output_image, label
-=======
-    def __init__(self, window, window_title, video_source = 0):
-        self.window = window
-        self.window.title(window_title)
-        self.video_source = video_source
->>>>>>> Stashed changes
 
-        self.vid = 
+ # Create a window and pass it to the Application object
+App(tkinter.Tk(), "Tkinter and OpenCV")
