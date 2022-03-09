@@ -337,7 +337,7 @@ class Game:
         if not self.home_frame:
             self.home_frame = tk.Frame(self.window)
             battle_button = tk.Button(self.home_frame, text = "Battle", command = partial(self.request_screen, self.home_frame))
-            train_button = tk.Button(self.home_frame, text = "Train", command = self.train_screen)
+            train_button = tk.Button(self.home_frame, text = "Train", command = partial(self.train_screen, self.home_frame))
             exit_button = tk.Button(self.home_frame, text = "Exit", command = self.exit_game)
             battle_button.pack()
             train_button.pack()
@@ -414,8 +414,17 @@ class Game:
 
         self.response_frame.pack()
 
-    def train_screen(self):
-        pass
+    def train_screen(self, prev_screen = None):
+        print("Training screen")
+        if prev_screen:
+            prev_screen.pack_forget()
+        
+        if not self.train_frame:
+            self.train_frame = tk.Frame(self.window)
+            tk.Label(self.train_frame, text="Choose Pokemon").pack()
+            pokemon_list = self.user.team_df["name"].tolist()
+            for pokemon_name in pokemon_list:
+                tk.Button(self.train_frame, text = pokemon_name, command = partial(self.set_pokemon, pokemon_name)).pack()  # lambda: self.set_pokemon(pokemon_name)
 
     def make_request(self, entry):
         opp_username = entry.get().strip()
