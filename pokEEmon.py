@@ -13,6 +13,11 @@ import random
 import copy
 import shutil
 import speech_recognition as sr
+import cv2
+from PIL import Image, ImageTk
+import mediapipe as mp
+import matplotlib.pyplot as plt
+import pose as ps
 
 ################################# SETUP ########################################################################
 ##### Command line interface to pass in name #####
@@ -247,6 +252,8 @@ class Game:
         self.receive_frame = None
         self.request_frame = None
         self.response_frame = None
+        self.train_frame = None
+        self.working_pokemon = None
         self.client = None
         self.connected = False
         self.request_num = None
@@ -414,17 +421,62 @@ class Game:
 
         self.response_frame.pack()
 
+    def set_pokemon(self, pokemon_name):
+        self.working_pokemon = pokemon_name
+        print("working pokemon")
+
     def train_screen(self, prev_screen = None):
         print("Training screen")
         if prev_screen:
+            print("prev_screen")
             prev_screen.pack_forget()
         
         if not self.train_frame:
+            print("enter")
             self.train_frame = tk.Frame(self.window)
+            self.train_frame.pack()
             tk.Label(self.train_frame, text="Choose Pokemon").pack()
             pokemon_list = self.user.team_df["name"].tolist()
             for pokemon_name in pokemon_list:
                 tk.Button(self.train_frame, text = pokemon_name, command = partial(self.set_pokemon, pokemon_name)).pack()  # lambda: self.set_pokemon(pokemon_name)
+            ### INCORPORATING COMPUTER VISION PORTION ###
+            #Initializing mediapipe pose class.
+            mp_pose = mp.solutions.pose
+            #Setting up the Pose function.
+            pose = mp_pose.Pose(static_image_mode=True, min_detection_confidence=0.3, model_complexity=2)
+            #Initializing mediapipe drawing class, useful for annotation.
+            mp_drawing = mp.solutions.drawing_utils
+            
+
+            cap = cv2.VideoCapture(0)
+            label = tk.Label(self.train_frame)
+            
+            pose_video = mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.5, model_complexity=1)
+            def show_frames():
+                # Get the latest frame and convert into Image
+                frame = cap.read()[1]
+                frame = cv2.flip(frame, 1)
+                self.height, self.width, _ = frame.shape
+                frame, landmarks = ps.detectPose(frame, pose_video, mp_drawing, mp_pose, display=False)
+                if landmarks:
+                    frame, _ = ps.classifyPose(landmarks, frame, mp_pose, display=False)
+
+
+                cv2image= cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
+                img = Image.fromarray(cv2image)
+                # Convert image to PhotoImage
+                imgtk = ImageTk.PhotoImage(image = img)
+                label.imgtk = imgtk
+                label.configure(image=imgtk)
+                label.pack()
+                label.after(1, show_frames)
+            label.after(1, show_frames)
+            tk.Button(self.train_frame, text="Finish Training", command = partial(self.set_pokemon, "poopoopeepee")).pack()
+            tk.Button(self.train_frame, text = "Back", command = partial(self.home_screen, self.train_frame)).pack()
+            # insert the CV portion here
+            
+            
+        
 
     def make_request(self, entry):
         opp_username = entry.get().strip()
