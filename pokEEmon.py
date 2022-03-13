@@ -445,7 +445,7 @@ class Game:
         print("Training screen Beginning")
         if prev_screen:
             prev_screen.pack_forget()
-        
+
         if not self.train_frame_begin:
             self.train_frame_begin = tk.Frame(self.window)
             tk.Label(self.train_frame_begin, text="Choose Pokemon").pack()
@@ -466,7 +466,7 @@ class Game:
             self.train_frame.destroy()
         self.train_frame = tk.Frame(self.window)
         self.train_frame.pack()
-    
+
         tk.Button(self.train_frame, text="Switch Pokemon", command = partial(self.train_screen_begin, self.train_frame)).pack()
         self.desired_pose = self.choose_pose()
         desired_pose_label = tk.Label(self.train_frame)
@@ -478,7 +478,7 @@ class Game:
         pose = mp_pose.Pose(static_image_mode=True, min_detection_confidence=0.3, model_complexity=2)
         #Initializing mediapipe drawing class, useful for annotation.
         mp_drawing = mp.solutions.drawing_utils
-        
+
         cap = cv2.VideoCapture(0)
         label = tk.Label(self.train_frame)
 
@@ -507,8 +507,8 @@ class Game:
             label.pack()
             label.after(1, show_frames)
         label.after(1, show_frames)
-            
-        
+
+
 
     def make_request(self, entry):
         opp_username = entry.get().strip()

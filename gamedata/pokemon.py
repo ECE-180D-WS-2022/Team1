@@ -93,19 +93,22 @@ class pokemon:
         if (self.xp > (self.lvl * 1000)):
             print()
             #TODO: implement leveling
+            self.lvl += 1
+            self.scale_hp(self.lvl)
+            self.scale_others(self.lvl)
         return
 
     #function meant for scaling the HP stats
     def scale_hp(self, level):
-        self.hp = int(((((2*self.hp) + random.randrange(25,31) + 20.25) * level)/100) + level + 10)
+        self.hp = int(((((2*self.hp) + random.randrange(28,31) + 20.25) * level)/100) + level + 10)
         return
     #function meant for scaling all other stats
     def scale_others(self, level):
-        self.atk = int(((((2*self.atk) + random.randrange(25,31) + 20.25) * level)/100) + 5)
-        self.defense = int(((((2*self.defense) + random.randrange(0,31) + 20.25) * level)/100) + 5)
-        self.spatk = int(((((2*self.spatk) + random.randrange(25,31) + 20.25) * level)/100) + 5)
-        self.spdef = int(((((2*self.spdef) + random.randrange(25,31) + 20.25) * level)/100) + 5)
-        self.speed = int(((((2*self.speed) + random.randrange(25,31) + 20.25) * level)/100) + 5)
+        self.atk = int(((((2*self.atk) + random.randrange(28,31) + 20.25) * level)/100) + 5)
+        self.defense = int(((((2*self.defense) + random.randrange(28,31) + 20.25) * level)/100) + 5)
+        self.spatk = int(((((2*self.spatk) + random.randrange(28,31) + 20.25) * level)/100) + 5)
+        self.spdef = int(((((2*self.spdef) + random.randrange(28,31) + 20.25) * level)/100) + 5)
+        self.speed = int(((((2*self.speed) + random.randrange(28,31) + 20.25) * level)/100) + 5)
         return
 
     #function that takes in average level, and scales
