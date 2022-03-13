@@ -475,7 +475,7 @@ class Game:
         #Initializing mediapipe pose class.
         mp_pose = mp.solutions.pose
         #Setting up the Pose function.
-        pose = mp_pose.Pose(static_image_mode=True, min_detection_confidence=0.3, model_complexity=2)
+        #pose = mp_pose.Pose(static_image_mode=True, min_detection_confidence=0.3, model_complexity=2)
         #Initializing mediapipe drawing class, useful for annotation.
         mp_drawing = mp.solutions.drawing_utils
 
@@ -492,6 +492,8 @@ class Game:
             returned_pose = None
             if landmarks:
                 frame, returned_pose = ps.classifyPose(landmarks, frame, mp_pose, display=False)
+            else:
+                cv2.putText(frame, 'No Human Detected', (10, 30), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 2)
             if returned_pose == self.desired_pose:
                 print("matched pose!")
                 self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "xp_accumulated"] += 20
