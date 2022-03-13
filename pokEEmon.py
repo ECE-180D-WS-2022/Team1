@@ -23,17 +23,19 @@ import random
 ################################# SETUP ########################################################################
 ##### Command line interface to pass in name #####
 parser = argparse.ArgumentParser(
-    description="Start the game by typing ./pokEEmon.py <username>"
+    description="Start the game by typing ./pokEEmon.py <username> <id>"
 )
 
-movedict = {"Thunderbolt" : 5, "Tackle" : 10, "Ice" : 2, "Flamethrower" : 6}
+movedamage = {"Thunderbolt" : 5, "Tackle" : 10, "Ice" : 2, "Flamethrower" : 6}
+movegesture = {"Thunderbolt" : "slash", "Tackle" : "block", "Ice" : "whip", "Flamethrower" : "scratch"}
 
 parser.add_argument("username", type=str, help="your in-game username")
+parser.add_argument("id", type=str, help="your pi id")
 args = parser.parse_args()
 print("Welcome " + args.username)
 
 class Battle:
-    def __init__(self, user, battle_id, opp_user, window, client, home):
+    def __init__(self, user, battle_id, opp_user, window, client, home, id):
         self.user = copy.deepcopy(user)
         self.battle_id = battle_id
         self.opp_user = copy.deepcopy(opp_user)
@@ -44,10 +46,28 @@ class Battle:
         self.opp_pokemon = 0
         self.wait_frame = None
         self.move_frame = None
+        self.gesture_frame = None
         self.choose_frame = None
         self.mic = None
         self.rec = None
         self.stop_listening = None
+        self.id = id
+        self.movename = None
+
+    def rcv_gesture_mqtt(self, client, userdata, message):
+        print("Received move message")
+        msg = message.payload
+        print(msg)
+
+        msg = str(msg.decode())
+
+        if msg == movegesture[self.movename]:
+            print("Got correct gesture")
+            self.do_move()
+        else:
+            print("Incorrect gestures")
+
+
 
     def rcv_battle_mqtt(self, client, userdata, message):
         print("Received move message")
@@ -59,8 +79,9 @@ class Battle:
 
         if msg and msg[0] == "move" and int(msg[2]) == self.battle_id:
             movename = msg[3]
+            pokeemon_name = self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("name")]
             #TODO get damage
-            damage = movedict[movename]
+            damage = movedamage[movename]
             hp = self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("hp")]
             hp -= damage
             if hp < 0:
@@ -70,7 +91,7 @@ class Battle:
                 print("You lost")
                 self.home(self.wait_frame)
             else:
-                self.move_screen(self.wait_frame)
+                self.move_screen(self.wait_frame, "{}'s {} played {}".format(self.opp_user.username.capitalize(), pokeemon_name, movename))
         elif msg and msg[0] == "change" and int(msg[2]) == self.battle_id:
             self.opp_pokemon = int(msg[3])
             self.wait_screen(self.wait_frame)
@@ -83,7 +104,7 @@ class Battle:
             print("Heard: " + words)
             for move in ["move1", "move2", "move3", "move4"]:
                 if self.user.team_df.iloc[self.curr_pokemon][move].lower() in words.lower():
-                    self.do_move(move)
+                    self.gesture_screen(move)
                     return
 
             print("Not a move")
@@ -98,27 +119,46 @@ class Battle:
         self.client.publish("ece180d/pokEEmon/" + self.opp_user.username + "/change", choose_msg)
         self.move_screen(self.choose_frame)
 
-    def do_move(self, move):
-        if self.stop_listening:
-            self.stop_listening(wait_for_stop=False)
-            self.stop_listening = None
-
-        movename = self.user.team_df.iloc[self.curr_pokemon][move]
+    def do_move(self):
         #TODO get damage
-        damage = movedict[movename]
+        damage = movedamage[self.movename]
         opp_hp = self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("hp")]
         opp_hp -= damage
         if opp_hp < 0:
             opp_hp = 0
         self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("hp")] = opp_hp
-        move_msg = "move,{},{},{}".format(self.user.username, self.battle_id, movename)
+        move_msg = "move,{},{},{}".format(self.user.username, self.battle_id, self.movename)
         self.client.publish("ece180d/pokEEmon/" + self.opp_user.username + "/move", move_msg)
         if self.opp_user.team_df[self.opp_user.team_df["hp"] > 0].empty:
             print("You won!")
-            self.home(self.move_frame)
+            self.home(self.gesture_frame)
         else:
-            self.wait_screen(self.move_frame)
+            self.wait_screen(self.gesture_frame)
 
+    def gesture_screen(self, move):
+        print("Waiting for gesture")
+        if self.move_frame:
+            self.move_frame.pack_forget()
+        if self.gesture_frame:
+            self.gesture_frame.destroy()
+
+        if self.stop_listening:
+            self.stop_listening(wait_for_stop=False)
+            self.stop_listening = None
+
+        self.movename = self.user.team_df.iloc[self.curr_pokemon][move]
+
+        self.client.on_message = self.rcv_gesture_mqtt
+        self.client.subscribe("ece180d/pokEEmon/" + self.id, qos=1)
+        print("Subscribed to " + "ece180d/pokEEmon/" + self.id)
+
+        self.gesture_frame = tk.Frame(self.window)
+        gesture_label = tk.Label(self.gesture_frame, text="Do a {} ".format(movegesture[self.movename]))
+        back_button = tk.Button(self.gesture_frame, text="Back", command = partial(self.move_screen, self.gesture_frame))
+        gesture_label.pack()
+        back_button.pack()
+
+        self.gesture_frame.pack()
 
     def wait_screen(self, prev_frame = None):
         print("Waiting for opponent move")
@@ -128,8 +168,10 @@ class Battle:
             self.wait_frame.destroy()
 
         self.client.on_message = self.rcv_battle_mqtt
+        self.client.unsubscribe("ece180d/pokEEmon/" + self.id)
         self.client.subscribe("ece180d/pokEEmon/" + self.user.username + "/move", qos=1)
         self.client.subscribe("ece180d/pokEEmon/" + self.user.username + "/change", qos=1)
+        self.client.unsubscribe("ece180d/pokEEmon/" + self.id)
         print("Subscribed to " + "ece180d/pokEEmon/" + self.user.username + "/move")
         print("Subscribed to " + "ece180d/pokEEmon/" + self.user.username + "/change")
 
@@ -148,7 +190,7 @@ class Battle:
         oppteam_label.pack()
         self.wait_frame.pack()
 
-    def move_screen(self, prev_frame = None):
+    def move_screen(self, prev_frame = None, move_update = None):
         print("Choose your move")
         if prev_frame:
             prev_frame.pack_forget()
@@ -156,19 +198,25 @@ class Battle:
             self.move_frame.destroy()
 
         #TODO check for cancel
+        self.client.unsubscribe("ece180d/pokEEmon/" + self.id)
         self.client.unsubscribe("ece180d/pokEEmon/" + self.user.username + "/move")
         self.client.unsubscribe("ece180d/pokEEmon/" + self.user.username + "/change")
+        print("Unsubscribed to " + "ece180d/pokEEmon/" + self.id)
         print("Unsubscribed to " + "ece180d/pokEEmon/" + self.user.username + "/move")
         print("Unsubscribed to " + "ece180d/pokEEmon/" + self.user.username + "/change")
 
         self.move_frame = tk.Frame(self.window)
 
+        if move_update:
+            update_label = tk.Label(self.move_frame, text=move_update)
+            update_label.pack()
+
         if self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("hp")] > 0:
             move_label = tk.Label(self.move_frame, text="Choose your move")
-            move1_button = tk.Button(self.move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move1"], command = partial(self.do_move, "move1"))
-            move2_button = tk.Button(self.move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move2"], command = partial(self.do_move, "move2"))
-            move3_button = tk.Button(self.move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move3"], command = partial(self.do_move, "move3"))
-            move4_button = tk.Button(self.move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move4"], command = partial(self.do_move, "move4"))
+            move1_button = tk.Button(self.move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move1"], command = partial(self.gesture_screen, "move1"))
+            move2_button = tk.Button(self.move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move2"], command = partial(self.gesture_screen, "move2"))
+            move3_button = tk.Button(self.move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move3"], command = partial(self.gesture_screen, "move3"))
+            move4_button = tk.Button(self.move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move4"], command = partial(self.gesture_screen, "move4"))
             move_label.pack()
             move1_button.pack()
             move2_button.pack()
@@ -245,7 +293,7 @@ class User:
         return gamestats_df, team_df
 
 class Game:
-    def __init__(self, username):
+    def __init__(self, username, id):
         self.user = User(username)
         self.opp_user = None
         self.window = None
@@ -260,6 +308,7 @@ class Game:
         self.client = None
         self.connected = False
         self.request_num = None
+        self.id = id
 
 
     def connect_mqtt(self):
@@ -323,7 +372,7 @@ class Game:
                 self.opp_user = User()
                 self.opp_user.username = msg[1]
                 self.opp_user.team_df = pd.read_csv(io.StringIO(msg[4]), sep='\s+')
-                b = Battle(self.user, self.request_num, self.opp_user, self.window, self.client, self.home_screen)
+                b = Battle(self.user, self.request_num, self.opp_user, self.window, self.client, self.home_screen, self.id)
                 b.wait_screen(self.response_frame)
             else:
                 print("Battle declined by: " + msg[1])
@@ -339,8 +388,10 @@ class Game:
             prev_frame.pack_forget()
 
         self.client.on_message = self.rcv_request_mqtt
+        self.client.unsubscribe("ece180d/pokEEmon/" + self.id)
         self.client.subscribe("ece180d/pokEEmon/" + self.user.username + "/request", qos=1)
         print("Subscribed to " + "ece180d/pokEEmon/" + self.user.username + "/request")
+        print("Unsubscribed to " + "ece180d/pokEEmon/" + self.id)
 
         if not self.window:
             self.window = tk.Tk()
@@ -562,7 +613,7 @@ class Game:
         self.client.publish("ece180d/pokEEmon/" + opp_username + "/response", response_msg)
         self.client.unsubscribe("ece180d/pokEEmon/" + self.user.username + "/cancel")
         print("Unsubscribed from " + "ece180d/pokEEmon/" + self.user.username + "/cancel")
-        b = Battle(self.user, self.request_num, self.opp_user, self.window, self.client, self.home_screen)
+        b = Battle(self.user, self.request_num, self.opp_user, self.window, self.client, self.home_screen, self.id)
         b.move_screen(self.receive_frame)
 
     def decline_request(self, opp_username):
@@ -584,7 +635,7 @@ class Game:
         self.window.destroy()
 
 
-game = Game(args.username)
+game = Game(args.username, args.id)
 game.connect_mqtt()
 game.home_screen()
 game.start_game()
