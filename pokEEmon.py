@@ -18,6 +18,7 @@ from PIL import Image, ImageTk
 import mediapipe as mp
 import matplotlib.pyplot as plt
 import pose as ps
+import random
 
 ################################# SETUP ########################################################################
 ##### Command line interface to pass in name #####
@@ -252,8 +253,10 @@ class Game:
         self.receive_frame = None
         self.request_frame = None
         self.response_frame = None
+        self.train_frame_begin = None
         self.train_frame = None
         self.working_pokemon = None
+        self.desired_pose = None
         self.client = None
         self.connected = False
         self.request_num = None
@@ -344,7 +347,7 @@ class Game:
         if not self.home_frame:
             self.home_frame = tk.Frame(self.window)
             battle_button = tk.Button(self.home_frame, text = "Battle", command = partial(self.request_screen, self.home_frame))
-            train_button = tk.Button(self.home_frame, text = "Train", command = partial(self.train_screen, self.home_frame))
+            train_button = tk.Button(self.home_frame, text = "Train", command = partial(self.train_screen_begin, self.home_frame))
             exit_button = tk.Button(self.home_frame, text = "Exit", command = self.exit_game)
             battle_button.pack()
             train_button.pack()
@@ -422,59 +425,88 @@ class Game:
         self.response_frame.pack()
 
     def set_pokemon(self, pokemon_name):
+        '''
+        Set the current working pokemon that will be used for training
+        '''
         self.working_pokemon = pokemon_name
-        print("working pokemon")
+        print(f"switched working pokemon to {pokemon_name}")
 
-    def train_screen(self, prev_screen = None):
-        print("Training screen")
+    def choose_pose(self):
+        '''
+        Randomly returns a string pose to be printed and to be done
+        '''
+        poses = ["Warrior Pose", "T Pose", "Tree Pose"]
+        return poses[random.randint(0,2)]
+
+    def train_screen_begin(self, prev_screen = None):
+        '''
+        Giving choices for pokemon to train
+        '''
+        print("Training screen Beginning")
         if prev_screen:
-            print("prev_screen")
             prev_screen.pack_forget()
         
-        if not self.train_frame:
-            print("enter")
-            self.train_frame = tk.Frame(self.window)
-            self.train_frame.pack()
-            tk.Label(self.train_frame, text="Choose Pokemon").pack()
+        if not self.train_frame_begin:
+            self.train_frame_begin = tk.Frame(self.window)
+            tk.Label(self.train_frame_begin, text="Choose Pokemon").pack()
             pokemon_list = self.user.team_df["name"].tolist()
             for pokemon_name in pokemon_list:
-                tk.Button(self.train_frame, text = pokemon_name, command = partial(self.set_pokemon, pokemon_name)).pack()  # lambda: self.set_pokemon(pokemon_name)
-            ### INCORPORATING COMPUTER VISION PORTION ###
-            #Initializing mediapipe pose class.
-            mp_pose = mp.solutions.pose
-            #Setting up the Pose function.
-            pose = mp_pose.Pose(static_image_mode=True, min_detection_confidence=0.3, model_complexity=2)
-            #Initializing mediapipe drawing class, useful for annotation.
-            mp_drawing = mp.solutions.drawing_utils
-            
+                tk.Button(self.train_frame_begin, text = pokemon_name, command = partial(self.train_screen, pokemon_name)).pack()
+            # tk.Button(self.train_frame_ begin, text="Finish Training", command = partial(self.set_pokemon, "poopoopeepee")).pack()
+            tk.Button(self.train_frame_begin, text = "Back", command = partial(self.home_screen, self.train_frame_begin)).pack()
+        self.train_frame_begin.pack()
 
-            cap = cv2.VideoCapture(0)
-            label = tk.Label(self.train_frame)
-            
-            pose_video = mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.5, model_complexity=1)
-            def show_frames():
-                # Get the latest frame and convert into Image
-                frame = cap.read()[1]
-                frame = cv2.flip(frame, 1)
-                self.height, self.width, _ = frame.shape
-                frame, landmarks = ps.detectPose(frame, pose_video, mp_drawing, mp_pose, display=False)
-                if landmarks:
-                    frame, _ = ps.classifyPose(landmarks, frame, mp_pose, display=False)
+    def train_screen(self, working_pokemon):
+        '''
+        Training that starts after pokemon is selected
+        '''
+        self.working_pokemen = working_pokemon
+        self.train_frame_begin.pack_forget()
+        if self.train_frame:
+            self.train_frame.destroy()
+        self.train_frame = tk.Frame(self.window)
+        self.train_frame.pack()
+    
+        tk.Button(self.train_frame, text="Switch Pokemon", command = partial(self.train_screen_begin, self.train_frame)).pack()
+        self.desired_pose = self.choose_pose()
+        desired_pose_label = tk.Label(self.train_frame)
+        desired_pose_label.config(text = f"Match the pose of: {self.desired_pose}")
+        desired_pose_label.pack()
+        #Initializing mediapipe pose class.
+        mp_pose = mp.solutions.pose
+        #Setting up the Pose function.
+        pose = mp_pose.Pose(static_image_mode=True, min_detection_confidence=0.3, model_complexity=2)
+        #Initializing mediapipe drawing class, useful for annotation.
+        mp_drawing = mp.solutions.drawing_utils
+        
+        cap = cv2.VideoCapture(0)
+        label = tk.Label(self.train_frame)
 
+        pose_video = mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.5, model_complexity=1)
+        def show_frames():
+            # Get the latest frame and convert into Image
+            frame = cap.read()[1]
+            frame = cv2.flip(frame, 1)
+            self.height, self.width, _ = frame.shape
+            frame, landmarks = ps.detectPose(frame, pose_video, mp_drawing, mp_pose, display=False)
+            returned_pose = None
+            if landmarks:
+                frame, returned_pose = ps.classifyPose(landmarks, frame, mp_pose, display=False)
+            if returned_pose == self.desired_pose:
+                print("matched pose!")
+                self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "xp_accumulated"] += 20
+                self.desired_pose = self.choose_pose()
+                desired_pose_label.config(text = f"Match the pose of: {self.desired_pose}")
 
-                cv2image= cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
-                img = Image.fromarray(cv2image)
-                # Convert image to PhotoImage
-                imgtk = ImageTk.PhotoImage(image = img)
-                label.imgtk = imgtk
-                label.configure(image=imgtk)
-                label.pack()
-                label.after(1, show_frames)
+            cv2image= cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
+            img = Image.fromarray(cv2image)
+            # Convert image to PhotoImage
+            imgtk = ImageTk.PhotoImage(image = img)
+            label.imgtk = imgtk
+            label.configure(image=imgtk)
+            label.pack()
             label.after(1, show_frames)
-            tk.Button(self.train_frame, text="Finish Training", command = partial(self.set_pokemon, "poopoopeepee")).pack()
-            tk.Button(self.train_frame, text = "Back", command = partial(self.home_screen, self.train_frame)).pack()
-            # insert the CV portion here
-            
+        label.after(1, show_frames)
             
         
 
