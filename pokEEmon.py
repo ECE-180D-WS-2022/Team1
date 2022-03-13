@@ -468,7 +468,9 @@ class Game:
         self.train_frame.pack()
 
         tk.Button(self.train_frame, text="Switch Pokemon", command = partial(self.train_screen_begin, self.train_frame)).pack()
+
         self.desired_pose = self.choose_pose()
+
         desired_pose_label = tk.Label(self.train_frame)
         desired_pose_label.config(text = f"Match the pose of: {self.desired_pose}")
         desired_pose_label.pack()
@@ -480,9 +482,24 @@ class Game:
         mp_drawing = mp.solutions.drawing_utils
 
         cap = cv2.VideoCapture(0)
+        #create label for cv image feed
         label = tk.Label(self.train_frame)
+        #create label for pose reference image
+        ref_img_label = tk.Label(self.train_frame)
 
         pose_video = mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.5, model_complexity=1)
+
+        #reference image switch statement
+        def pull_image(chosen_pose):
+            if (chosen_pose == "Warrior Pose"):
+                return "warrior2.png"
+            if (chosen_pose == "T Pose"):
+                return "tpose.png"
+            if (chosen_pose == "Tree Pose"):
+                return "tree.jpg"
+            else:
+                return "error.jpg"
+
         def show_frames():
             # Get the latest frame and convert into Image
             frame = cap.read()[1]
@@ -506,8 +523,15 @@ class Game:
             imgtk = ImageTk.PhotoImage(image = img)
             label.imgtk = imgtk
             label.configure(image=imgtk)
-            label.pack()
+            label.pack(side = tk.LEFT)
+            #access and pack reference image
+            ref_img = ImageTk.PhotoImage(file = pull_image(self.desired_pose))
+            ref_img_label.imgtk = ref_img
+            ref_img_label.configure(image = ref_img)
+            ref_img_label.pack(side = tk.RIGHT)
+
             label.after(1, show_frames)
+
         label.after(1, show_frames)
 
 
