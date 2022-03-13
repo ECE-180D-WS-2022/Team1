@@ -438,13 +438,15 @@ class Game:
         poses = ["Warrior Pose", "T Pose", "Tree Pose"]
         return poses[random.randint(0,2)]
 
-    def train_screen_begin(self, prev_screen = None):
+    def train_screen_begin(self, prev_screen = None, camera = None):
         '''
         Giving choices for pokemon to train
         '''
         print("Training screen Beginning")
         if prev_screen:
             prev_screen.pack_forget()
+        if camera:
+            camera.release()
 
         if not self.train_frame_begin:
             self.train_frame_begin = tk.Frame(self.window)
@@ -460,6 +462,7 @@ class Game:
         '''
         Training that starts after pokemon is selected
         '''
+        cap = cv2.VideoCapture(0)
         self.working_pokemen = working_pokemon
         self.train_frame_begin.pack_forget()
         if self.train_frame:
@@ -467,7 +470,7 @@ class Game:
         self.train_frame = tk.Frame(self.window)
         self.train_frame.pack()
 
-        tk.Button(self.train_frame, text="Switch Pokemon", command = partial(self.train_screen_begin, self.train_frame)).pack()
+        tk.Button(self.train_frame, text="Switch Pokemon", command = partial(self.train_screen_begin, self.train_frame, cap)).pack()
 
         self.desired_pose = self.choose_pose()
 
@@ -481,7 +484,6 @@ class Game:
         #Initializing mediapipe drawing class, useful for annotation.
         mp_drawing = mp.solutions.drawing_utils
 
-        cap = cv2.VideoCapture(0)
         #create label for cv image feed
         label = tk.Label(self.train_frame)
         #create label for pose reference image
@@ -502,35 +504,36 @@ class Game:
 
         def show_frames():
             # Get the latest frame and convert into Image
-            frame = cap.read()[1]
-            frame = cv2.flip(frame, 1)
-            self.height, self.width, _ = frame.shape
-            frame, landmarks = ps.detectPose(frame, pose_video, mp_drawing, mp_pose, display=False)
-            returned_pose = None
-            if landmarks:
-                frame, returned_pose = ps.classifyPose(landmarks, frame, mp_pose, display=False)
-            else:
-                cv2.putText(frame, 'No Human Detected', (10, 30), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 2)
-            if returned_pose == self.desired_pose:
-                print("matched pose!")
-                self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "xp_accumulated"] += 20
-                self.desired_pose = self.choose_pose()
-                desired_pose_label.config(text = f"Match the pose of: {self.desired_pose}")
+            if cap:
+                frame = cap.read()[1]
+                frame = cv2.flip(frame, 1)
+                self.height, self.width, _ = frame.shape
+                frame, landmarks = ps.detectPose(frame, pose_video, mp_drawing, mp_pose, display=False)
+                returned_pose = None
+                if landmarks:
+                    frame, returned_pose = ps.classifyPose(landmarks, frame, mp_pose, display=False)
+                else:
+                    cv2.putText(frame, 'No Human Detected', (10, 30), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 2)
+                if returned_pose == self.desired_pose:
+                    print("matched pose!")
+                    self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "xp_accumulated"] += 20
+                    self.desired_pose = self.choose_pose()
+                    desired_pose_label.config(text = f"Match the pose of: {self.desired_pose}")
 
-            cv2image= cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
-            img = Image.fromarray(cv2image)
-            # Convert image to PhotoImage
-            imgtk = ImageTk.PhotoImage(image = img)
-            label.imgtk = imgtk
-            label.configure(image=imgtk)
-            label.pack(side = tk.LEFT)
-            #access and pack reference image
-            ref_img = ImageTk.PhotoImage(file = pull_image(self.desired_pose))
-            ref_img_label.imgtk = ref_img
-            ref_img_label.configure(image = ref_img)
-            ref_img_label.pack(side = tk.RIGHT)
+                cv2image= cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
+                img = Image.fromarray(cv2image)
+                # Convert image to PhotoImage
+                imgtk = ImageTk.PhotoImage(image = img)
+                label.imgtk = imgtk
+                label.configure(image=imgtk)
+                label.pack(side = tk.LEFT)
+                #access and pack reference image
+                ref_img = ImageTk.PhotoImage(file = pull_image(self.desired_pose))
+                ref_img_label.imgtk = ref_img
+                ref_img_label.configure(image = ref_img)
+                ref_img_label.pack(side = tk.RIGHT)
 
-            label.after(1, show_frames)
+                label.after(1, show_frames)
 
         label.after(1, show_frames)
 
