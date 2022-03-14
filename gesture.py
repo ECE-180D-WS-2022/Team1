@@ -1,29 +1,15 @@
 #!/usr/bin/python
-#
-#    This program  reads the angles from the acceleromteer, gyroscope
-#    and mangnetometer on a BerryIMU connected to a Raspberry Pi.
-#
-#    This program includes two filters (low pass and median) to improve the
-#    values returned from BerryIMU by reducing noise.
-#
-#    The BerryIMUv1, BerryIMUv2 and BerryIMUv3 are supported
-#
-#    This script is python 2.7 and 3 compatible
-#
-#    Feel free to do whatever you like with this code.
-#    Distributed as-is; no warranty is given.
-#
-#    http://ozzmaker.com/
-
-
-
+import paho.mqtt.client as mqtt
 import sys
+if sys.version_info[0] == 3:
+    import tkinter as tk
+else:
+    import Tkinter as tk
 import time
 import math
 import IMU
 import datetime
 import os
-
 
 RAD_TO_DEG = 57.29578
 M_PI = 3.14159265358979323846
@@ -34,8 +20,12 @@ ACC_LPF_FACTOR = 0.4    # Low pass filter constant for accelerometer
 ACC_MEDIANTABLESIZE = 9         # Median filter table size for accelerometer. Higher = smoother but a longer delay
 MAG_MEDIANTABLESIZE = 9         # Median filter table size for magnetometer. Higher = smoother but a longer delay
 
+id = "101"
 
-
+a1 = 0
+a2 = 0
+a3 = 0
+a4 = 0
 ################# Compass Calibration values ############
 # Use calibrateBerryIMU.py to get calibration values
 # Calibrating the compass isnt mandatory, however a calibrated
@@ -79,7 +69,29 @@ YP_11 = 0.0
 KFangleX = 0.0
 KFangleY = 0.0
 
+#MQTT comms
+connected = False
 
+def on_connect():
+   global connected
+   connected = True
+   print("mqtt connected")
+ 
+
+print("Connecting to MQTT")
+client = mqtt.Client()
+client.on_connect = on_connect()
+client.connect("test.mosquitto.org")
+client.loop_start()
+while not connected:
+            time.sleep(0.1)
+
+def timeout():
+    a1=0
+    a2=0
+    a3=0
+    a4=0
+    print("internal timeout")
 
 def kalmanFilterY ( accAngle, gyroRate, DT):
     y=0.0
@@ -193,10 +205,7 @@ if(IMU.BerryIMUversion == 99):
     sys.exit()
 IMU.initIMU()       #Initialise the accelerometer, gyroscope and compass
 
-a1 = 0
-a2 = 0
-a3 = 0
-a4 = 0
+
 while True:
 
     #Read the accelerometer,gyroscope and magnetometer values
@@ -405,51 +414,74 @@ while True:
     if 1:
         outputString += "# accXNorm %5.2f   accYNorm %5.2f  pitch %5.2f roll %5.2f#" % (accXnorm,accYnorm,pitch,roll)
     '''
-    #print(outputString)
+    print(outputString)
     
     #if accYnorm < .05 and accYnorm > -.05 and accXnorm < .05 and accXnorm > -.05:
     #    print("idle")
 
-    
-    if accXnorm > 0.5 and a1==1:
+    if accXnorm > 0.45 and a1==1:
         print("SCRATCH attack")
+        client.publish("ece180d/pokEEmon/" + id , "scratch")
+        time.sleep(5)
         a1 = 0
         a3=0
+        a2=0
+        a4=0
     if accXnorm < -0.5:
         a1 = 1
-        a2=0
         a3=0
-        a4=0
 
-    if accYnorm < -0.5 and a2==1:
-        print("WHIP attack")
+    if accXnorm < 0.5 and a3==1:
+        print("BLOCK attack")
+        client.publish("ece180d/pokEEmon/" + id , "block")
+        time.sleep(5)
+        a3=0
+        a1=0
         a2=0
-        a3=0
         a4=0
+    if accXnorm > 0.6:
         a1=0
-    if accYnorm > 0.5:
-        a2=1
-        a3=0
-        a1=0
-        #a4=0
+        a3=1
 
     if accYnorm > 0.5 and a4==1:
         print("SLASH attack")
+        client.publish("ece180d/pokEEmon/" + id , "slash")
+        time.sleep(5)
+        a4=0
+        a2=0
+        a1=0
+        a2=0
+    if accYnorm < -0.5:
+        a4=1
+        a2=0
+
+    if accYnorm < -0.4 and a2==1:
+        print("WHIP attack")
+        client.publish("ece180d/pokEEmon/" + id , "whip")
+        time.sleep(5)
+        a2=0
         a4=0
         a1=0
         a2=0
-        a3=0
-    if accYnorm < -0.5:
-        a4=1
-        a1=0
-        a2=0
-        a3=0
+    if accYnorm > 0.4:
+        a2=1
+        a4=0
 
-    if accXnorm > 0.5 and a3==1:
-        print("FIRE PUNCH attack")
-        a3=0
-    if accXnorm < .2:
-        a3=1
+
+#    timed.after(2500, timeout()) 
+
+
+#    print("a1 " , a1)
+#    print("a2 " , a2)
+#    print("a3 " , a3)
+#    print("a4 " , a4)
+#    print(" --- ")
+
+#    if accXnorm > 0.5 and a3==1:
+#        print("FIRE PUNCH attack")
+#        a3=0
+#    if accXnorm < .2:
+#        a3=1
 
 
 #    if -40 < CFangleX < 30 and -110 < CFangleY < -50 and accYnorm < -0.7:
