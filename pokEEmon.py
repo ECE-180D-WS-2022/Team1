@@ -247,7 +247,7 @@ class Battle:
         with self.mic as source:
             self.rec.adjust_for_ambient_noise(source)
 
-        self.stop_listening = self.rec.listen_in_background(self.mic, self.voice_callback)
+        self.stop_listening = self.rec.listen_in_background(self.mic, self.voice_callback, 3)
 
 
     def choose_screen(self, prev_frame = None):
