@@ -19,7 +19,9 @@ import mediapipe as mp
 import matplotlib.pyplot as plt
 import pose as ps
 import random
+import winsound
 
+os.system("start click.wav")
 ################################# SETUP ########################################################################
 ##### Command line interface to pass in name #####
 parser = argparse.ArgumentParser(
@@ -121,6 +123,7 @@ class Battle:
 
     def do_move(self):
         #TODO get damage
+        winsound.PlaySound('whoosh.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
         damage = movedamage[self.movename]
         opp_hp = self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("hp")]
         opp_hp -= damage
@@ -137,6 +140,7 @@ class Battle:
 
     def gesture_screen(self, move):
         print("Waiting for gesture")
+        winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
         if self.move_frame:
             self.move_frame.pack_forget()
         if self.gesture_frame:
@@ -192,6 +196,7 @@ class Battle:
 
     def move_screen(self, prev_frame = None, move_update = None):
         print("Choose your move")
+        winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
         if prev_frame:
             prev_frame.pack_forget()
         if self.move_frame:
@@ -251,6 +256,7 @@ class Battle:
 
 
     def choose_screen(self, prev_frame = None):
+        winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
         if self.move_frame:
             self.move_frame.pack_forget()
         if self.choose_frame:
@@ -395,6 +401,8 @@ class Game:
 
         if not self.window:
             self.window = tk.Tk()
+        else:
+            winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
         if not self.home_frame:
             self.home_frame = tk.Frame(self.window)
             battle_button = tk.Button(self.home_frame, text = "Battle", command = partial(self.request_screen, self.home_frame))
@@ -408,6 +416,7 @@ class Game:
 
     def receive_screen(self, opp_username):
         print("Receive screen")
+        winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
         self.home_frame.pack_forget()
         if self.receive_frame:
             self.receive_frame.destroy()
@@ -431,6 +440,7 @@ class Game:
 
     def request_screen(self, prev_screen = None):
         print("Request screen")
+        winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
 
         if prev_screen:
             prev_screen.pack_forget()
@@ -457,6 +467,7 @@ class Game:
 
 
     def response_screen(self, opp_username):
+        winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
         print("Response screen")
         self.request_frame.pack_forget()
         if self.response_frame:
@@ -490,6 +501,7 @@ class Game:
         return poses[random.randint(0,2)]
 
     def train_screen_begin(self, prev_screen = None, camera = None):
+        winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
         '''
         Giving choices for pokemon to train
         '''
@@ -510,6 +522,7 @@ class Game:
         self.train_frame_begin.pack()
 
     def train_screen(self, working_pokemon):
+        winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
         '''
         Training that starts after pokemon is selected
         '''
@@ -630,6 +643,7 @@ class Game:
 
     def exit_game(self):
         print("Exiting game")
+        winsound.PlaySound('click.wav', winsound.SND_FILENAME)
         self.user.gamestats_df.to_csv(self.user.path + "/gamestats.csv", index = False, quoting=csv.QUOTE_NONNUMERIC)
         self.user.team_df.to_csv(self.user.path + "/team.csv", index=False, quoting=csv.QUOTE_NONNUMERIC)
         self.window.destroy()
