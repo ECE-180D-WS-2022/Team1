@@ -21,7 +21,7 @@ import pose as ps
 import random
 import winsound
 
-# os.system("start click.wav")
+#os.system("start click.wav")
 ################################# SETUP ########################################################################
 ##### Command line interface to pass in name #####
 parser = argparse.ArgumentParser(
@@ -298,7 +298,6 @@ class User:
             team_df = pd.read_csv(self.path + "/team.csv")
             team_df = team_df.append(all_pokemon_df.iloc[[random.randrange(0,799)]], ignore_index=True)
             team_df = team_df.append(all_pokemon_df.iloc[[random.randrange(0,799)]], ignore_index=True)
-            print(team_df)
         else:
             gamestats_df = pd.read_csv(self.path + "/gamestats.csv")
             team_df = pd.read_csv(self.path + "/team.csv")
@@ -407,6 +406,7 @@ class Game:
 
         if not self.window:
             self.window = tk.Tk()
+            self.window.attributes('-fullscreen',True)
         else:
             winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
         if not self.home_frame:
@@ -587,6 +587,22 @@ class Game:
                 if returned_pose == self.desired_pose:
                     print("matched pose!")
                     self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "xp_accumulated"] += 20
+                    #1000 xp to level up
+                    current_xp =  self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "xp_accumulated"]
+                    lvl = self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "level"]
+                    hp = self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "hp"]
+                    atk = self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "atk"]
+                    spatk = self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "special_attack"]
+                    spdef = self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "special_defense"]
+                    speed = self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "speed"]
+                    if (current_xp > (lvl * 1000)):
+                        #TODO: implement leveling
+                        self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "level"] += 1
+                        self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "hp"] = int(((((2*hp) + random.randrange(28,31) + 20.25) * lvl)/100) + lvl + 10)
+                        self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "atk"] = int(((((2*atk) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
+                        self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "special_attack"] = int(((((2*spatk) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
+                        self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "special_defense"] = int(((((2*spdef) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
+                        self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "speed"] = int(((((2*speed) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
                     self.desired_pose = self.choose_pose()
                     desired_pose_label.config(text = f"Match the pose of: {self.desired_pose}")
 
