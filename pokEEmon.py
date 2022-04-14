@@ -298,7 +298,6 @@ class User:
             team_df = pd.read_csv(self.path + "/team.csv")
             team_df = team_df.append(all_pokemon_df.iloc[[random.randrange(0,799)]], ignore_index=True)
             team_df = team_df.append(all_pokemon_df.iloc[[random.randrange(0,799)]], ignore_index=True)
-            print(team_df)
         else:
             gamestats_df = pd.read_csv(self.path + "/gamestats.csv")
             team_df = pd.read_csv(self.path + "/team.csv")
