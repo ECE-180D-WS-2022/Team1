@@ -21,7 +21,7 @@ import pose as ps
 import random
 import winsound
 
-os.system("start click.wav")
+#os.system("start click.wav")
 ################################# SETUP ########################################################################
 ##### Command line interface to pass in name #####
 parser = argparse.ArgumentParser(
@@ -401,6 +401,7 @@ class Game:
 
         if not self.window:
             self.window = tk.Tk()
+            self.window.attributes('-fullscreen',True)
         else:
             winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
         if not self.home_frame:
