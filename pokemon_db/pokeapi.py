@@ -7,8 +7,8 @@ del df["#"]
 del df["Total"]
 del df["Generation"]
 del df["Legendary"]
-df.rename(columns={"Type 1": "type", "Sp. Atk": "special attack", "Sp. Def": "special defense"}, inplace=True)
-df['xp reward'] = 82
+df.rename(columns={"Type 1": "type", "Sp. Atk": "special_attack", "Sp. Def": "special_defense"}, inplace=True)
+df['xp_reward'] = 82
 df["move1"] = "Thunderbolt"
 df["move2"] = "Tackle"
 df["move3"] = "Water Gun"

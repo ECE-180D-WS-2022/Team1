@@ -21,7 +21,7 @@ import pose as ps
 import random
 import winsound
 
-os.system("start click.wav")
+# os.system("start click.wav")
 ################################# SETUP ########################################################################
 ##### Command line interface to pass in name #####
 parser = argparse.ArgumentParser(
@@ -293,9 +293,15 @@ class User:
             os.mkdir(self.path, 0o777)
             shutil.copy2("data/users/default/gamestats.csv", self.path)
             shutil.copy2("data/users/default/team.csv", self.path)
-
-        gamestats_df = pd.read_csv(self.path + "/gamestats.csv")
-        team_df = pd.read_csv(self.path + "/team.csv")
+            all_pokemon_df = pd.read_csv("data/pokemon.csv")
+            gamestats_df = pd.read_csv(self.path + "/gamestats.csv")
+            team_df = pd.read_csv(self.path + "/team.csv")
+            team_df = team_df.append(all_pokemon_df.iloc[[random.randrange(0,799)]], ignore_index=True)
+            team_df = team_df.append(all_pokemon_df.iloc[[random.randrange(0,799)]], ignore_index=True)
+            print(team_df)
+        else:
+            gamestats_df = pd.read_csv(self.path + "/gamestats.csv")
+            team_df = pd.read_csv(self.path + "/team.csv")
         return gamestats_df, team_df
 
 class Game:
