@@ -20,6 +20,7 @@ import matplotlib.pyplot as plt
 import pose as ps
 import random
 import winsound
+import moves_new as mv
 
 #os.system("start click.wav")
 ################################# SETUP ########################################################################
@@ -30,6 +31,8 @@ parser = argparse.ArgumentParser(
 
 movedamage = {"Thunderbolt" : 5, "Tackle" : 10, "Ice" : 2, "Flamethrower" : 6}
 movegesture = {"Thunderbolt" : "slash", "Tackle" : "block", "Ice" : "whip", "Flamethrower" : "scratch"}
+
+move_matrix = mv.import_moves()
 
 parser.add_argument("username", type=str, help="your in-game username")
 parser.add_argument("id", type=str, help="your pi id")
