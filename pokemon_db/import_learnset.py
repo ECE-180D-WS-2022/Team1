@@ -1,22 +1,29 @@
-import pandas as pd
+import numpy as np
+import sys
+import time
+#import pokepy
+import random
+import os
+import copy
 import csv
+import pandas as pd
 
-df = pd.read_csv('all_pokemon.csv')
-del df["Type 2"]
-del df["#"]
-del df["Total"]
-del df["Generation"]
-del df["Legendary"]
-df.rename(columns={"Type 1": "type", "Sp. Atk": "special_attack", "Sp. Def": "special_defense"}, inplace=True)
-df['xp_reward'] = 82
-df["move1"] = "Thunderbolt"
-df["move2"] = "Tackle"
-df["move3"] = "Water Gun"
-df["move4"] = "Flamethrower"
-df["xp_accumulated"] = 0
-df["level"] = 0
-df.columns = df.columns.str.lower()
+'''
+pd.set_option('precision', 0)
+df = pd.read_csv('learnset.csv', iterator = True, chunksize = 5000)
+for chunk in df:
+    for index in chunk:
+        if (chunk.at[index, "version_group_id"] != 20):
+            chunk.drop(index, axis = 0, inplace = True)
+'''
+df = pd.read_csv('learnset.csv')
+#first filter out all gen except for "20"
+#also filter out non-learned moves
+for index in range(0, df.shape[0]):
+    if (df.at[index, "version_group_id"] != 20):
+        df.drop(index, axis = 0, inplace = True)
+    #if (df.at[index, "pokemon_move_method_id"] != 1):
+        #df.drop(index, axis = 0, inplace = True)
 
-
-df.to_csv( "../data/pokemon.csv", index = False, quoting=csv.QUOTE_NONNUMERIC)
-print(df)
+#reset indices w/ new csv
+df.to_csv( "../pokemon_db/truncated_learnset.csv", index = False, quoting=csv.QUOTE_NONNUMERIC)

@@ -25,7 +25,7 @@ df.columns = df.columns.str.lower()
 
 df.drop(range(10001, 10019), axis = 0, inplace = True)
 
-for index in range(1, 826):
+for index in range(1, 827):
 
     if (df.at[index, "type_id"] == 1):
         df.at[index, "type_id"] = "normal"
@@ -70,7 +70,7 @@ for index in range(1, 826):
         df.at[index, "type_id"] = "psychic"
 
     if (df.at[index, "type_id"] == 15):
-        df.at[index, "type_id"] = 'ice'
+        df.at[index, "type_id"] = "ice"
 
     if (df.at[index, "type_id"] == 16):
         df.at[index, "type_id"] = "dragon"
