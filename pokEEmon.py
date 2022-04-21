@@ -412,14 +412,16 @@ class Game:
             winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
         if not self.home_frame:
             self.home_frame = tk.Frame(self.window)
-            battle_button = tk.Button(self.home_frame, text = "Battle", command = partial(self.request_screen, self.home_frame))
-            train_button = tk.Button(self.home_frame, text = "Train", command = partial(self.train_screen_begin, self.home_frame))
-            exit_button = tk.Button(self.home_frame, text = "Exit", command = self.exit_game)
-            battle_button.pack()
-            train_button.pack()
-            exit_button.pack()
+            battle_button = tk.Button(self.home_frame, text = "Battle", command = partial(self.request_screen, self.home_frame), height = 6, width = 70)
+            train_button = tk.Button(self.home_frame, text = "Train", command = partial(self.train_screen_begin, self.home_frame), height = 6, width = 70)
+            exit_button = tk.Button(self.home_frame, text = "Exit", command = self.exit_game, height = 6, width = 70)
 
-        self.home_frame.pack()
+
+            exit_button.pack(side=tk.BOTTOM, pady=10)
+            battle_button.pack(side=tk.BOTTOM, pady=10)
+            train_button.pack(side=tk.BOTTOM, pady=10)
+
+        self.home_frame.pack(fill='both', expand=True)
 
     def receive_screen(self, opp_username):
         print("Receive screen")
