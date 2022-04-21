@@ -438,7 +438,7 @@ class Game:
 
         if not self.window:
             self.window = tk.Tk()
-            self.window.attributes('-fullscreen',True)
+            # self.window.attributes('-fullscreen',True)
         else:
             winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
         if not self.home_frame:
@@ -587,15 +587,15 @@ class Game:
         self.train_frame_begin.pack_forget()
         if self.train_frame:
             self.train_frame.destroy()
-        self.train_frame = tk.Frame(self.window)
+        self.train_frame = tk.Frame(self.window, bg = "#34cfeb")
         self.train_frame.pack()
 
-        tk.Button(self.train_frame, text="Switch Pokemon", command = partial(self.train_screen_begin, self.train_frame, cap)).pack()
+        tk.Button(self.train_frame, text="Switch Pokemon", command = partial(self.train_screen_begin, self.train_frame, cap), height = 2, width = 20, bg="#ffcc03").pack(pady=10)
 
         self.desired_pose = self.choose_pose()
 
-        desired_pose_label = tk.Label(self.train_frame)
-        desired_pose_label.config(text = f"Match the pose of: {self.desired_pose}")
+        desired_pose_label = tk.Label(self.train_frame, bg = "#34cfeb")
+        desired_pose_label.config(text = f"Match the pose of: {self.desired_pose}", font=("Arial", 25))
         desired_pose_label.pack()
         #Initializing mediapipe pose class.
         mp_pose = mp.solutions.pose
