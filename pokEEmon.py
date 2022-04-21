@@ -20,24 +20,10 @@ import matplotlib.pyplot as plt
 import pose as ps
 import random
 import winsound
-import moves_new as mv
+import math
+#import moves_new as mv
 
-#os.system("start click.wav")
-################################# SETUP ########################################################################
-##### Command line interface to pass in name #####
-parser = argparse.ArgumentParser(
-    description="Start the game by typing ./pokEEmon.py <username> <id>"
-)
-
-movedamage = {"Thunderbolt" : 5, "Tackle" : 10, "Ice" : 2, "Flamethrower" : 6}
 movegesture = {"Thunderbolt" : "slash", "Tackle" : "block", "Ice" : "whip", "Flamethrower" : "scratch"}
-
-move_matrix = mv.import_moves()
-
-parser.add_argument("username", type=str, help="your in-game username")
-parser.add_argument("id", type=str, help="your pi id")
-args = parser.parse_args()
-print("Welcome " + args.username)
 
 class Battle:
     def __init__(self, user, battle_id, opp_user, window, client, home, id):
@@ -58,6 +44,7 @@ class Battle:
         self.stop_listening = None
         self.id = id
         self.movename = None
+        self.moves_df = pd.read_csv("data/moves.csv")
 
     def rcv_gesture_mqtt(self, client, userdata, message):
         print("Received move message")
@@ -72,8 +59,6 @@ class Battle:
         else:
             print("Incorrect gestures")
 
-
-
     def rcv_battle_mqtt(self, client, userdata, message):
         print("Received move message")
         msg = message.payload
@@ -85,8 +70,7 @@ class Battle:
         if msg and msg[0] == "move" and int(msg[2]) == self.battle_id:
             movename = msg[3]
             pokeemon_name = self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("name")]
-            #TODO get damage
-            damage = movedamage[movename]
+            damage = self.calc_damage(movename, False, int(msg[4]), self.opp_user.team_df.iloc[self.opp_pokemon], self.user.team_df.iloc[self.curr_pokemon])
             hp = self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("hp")]
             hp -= damage
             if hp < 0:
@@ -125,21 +109,63 @@ class Battle:
         self.move_screen(self.choose_frame)
 
     def do_move(self):
-        #TODO get damage
         winsound.PlaySound('whoosh.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
-        damage = movedamage[self.movename]
+        random_mult = random.randrange(85,100)
+        damage = self.calc_damage(self.movename, False, random_mult, self.user.team_df.iloc[self.curr_pokemon], self.opp_user.team_df.iloc[self.opp_pokemon])
         opp_hp = self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("hp")]
         opp_hp -= damage
         if opp_hp < 0:
             opp_hp = 0
         self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("hp")] = opp_hp
-        move_msg = "move,{},{},{}".format(self.user.username, self.battle_id, self.movename)
+        move_msg = "move,{},{},{},{}".format(self.user.username, self.battle_id, self.movename, random_mult)
         self.client.publish("ece180d/pokEEmon/" + self.opp_user.username + "/move", move_msg)
         if self.opp_user.team_df[self.opp_user.team_df["hp"] > 0].empty:
             print("You won!")
             self.home(self.gesture_frame)
         else:
             self.wait_screen(self.gesture_frame)
+
+    def calc_damage(self, movename, special, random_mult, attack_pk, receive_pk):
+        random_mult = float(random_mult) * 0.01  #random multiplier from 0.85 to 1
+        multiplier = self.find_effectiveness(attack_pk["type"], receive_pk["type"])
+        if (attack_pk["type"] == receive_pk["type"]): #implement same type attack bonus
+            stab = 1.5
+        else:
+            stab = 1
+        pwr =  float(self.moves_df.loc[self.moves_df["identifier"] == movename.lower()]["power"])
+
+        #special attack calc
+        if (special):
+            damage = ((((((2*attack_pk["level"])/5)+2)*pwr*(attack_pk["special_attack"]/receive_pk["special_defense"]))/50)+2)*stab*multiplier*random_mult
+        #physical attack calc
+        else:
+            damage = ((((((2*attack_pk["level"])/5)+2)*pwr*(attack_pk["attack"]/receive_pk["defense"]))/50)+2)*stab*multiplier*random_mult
+
+        return int(math.floor(damage))
+
+    def find_effectiveness(self, attack_type, receive_type):
+        effectiveness_array = [[1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   0.5, 0,   1,   1,   0.5, 1],
+                               [1,   0.5, 0.5, 1,   2,   2,   1,   1,   1,   1,   1,   2,   0.5, 1,   0.5, 1,   2,   1],
+                               [1,   2,   0.5, 1,   0.5, 1,   1,   1,   2,   1,   1,   1,   2,   1,   0.5, 1,   1,   1],
+                               [1,   1,   2,   0.5, 0.5, 1,   1,   1,   0,   2,   1,   1,   1,   1,   0.5, 1,   1,   1],
+                               [1,   0.5, 2,   1,   0.5, 1,   1,   0.5, 2,   0.5, 1,   0.5, 2,   1,   0.5, 1,   0.5, 1],
+                               [1,   0.5, 0.5, 1,   2,   0.5, 1,   1,   2,   2,   1,   1,   1,   1,   2,   1,   0.5, 1],
+                               [2,   1,   1,   1,   1,   2,   1,   0.5, 1,   0.5, 0.5, 0.5, 2,   0,   1,   2,   2,   0.5],
+                               [1,   1,   1,   1,   2,   1,   1,   0.5, 0.5, 1,   1,   1,   0.5, 0.5, 1,   1,   0,   2],
+                               [1,   2,   1,   2,   0.5, 1,   1,   2,   1,   0,   1,   0.5, 2,   1,   1,   1,   2,   1],
+                               [1,   1,   1,   0.5, 2,   1,   2,   1,   1,   1,   1,   2,   0.5, 1,   1,   1,   0.5, 1],
+                               [1,   1,   1,   1,   1,   1,   2,   2,   1,   1,   0.5, 1,   1,   1,   1,   0,   0.5, 1],
+                               [1,   0.5, 1,   1,   2,   1,   0.5, 0.5, 1,   0.5, 2,   1,   1,   0.5, 1,   2,   0.5, 0.5],
+                               [1,   2,   1,   1,   1,   2,   0.5, 1,   0.5, 2,   1,   2,   1,   1,   1,   1,   0.5, 1],
+                               [0,   1,   1,   1,   1,   1,   1,   1,   1,   1,   2,   1,   1,   2,   1,   0.5, 1,   1],
+                               [1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   2,   1,   0.5, 0],
+                               [1,   1,   1,   1,   1,   1,   0.5, 1,   1,   1,   2,   1,   1,   2,   1,   0.5, 1,   0.5],
+                               [1,   0.5, 0.5, 0.5, 1,   2,   1,   1,   1,   1,   1,   1,   2,   1,   1,   1,   0.5, 2],
+                               [1,   0.5, 1,   1,   1,   1,   2,   0.5, 1,   1,   1,   1,   1,   1,   2,   2,   0.5, 1], ]
+        typeList = ["Normal", "Fire", "Water", "Electric", "Grass", "Ice", "Fighting", "Poison", "Ground", "Flying", "Psychic", "Bug", "Rock", "Ghost", "Dragon", "Dark", "Steel", "Fairy",]
+
+        multiplier = effectiveness_array[typeList.index(attack_type)][typeList.index(receive_type)]
+        return multiplier
 
     def gesture_screen(self, move):
         print("Waiting for gesture")
@@ -166,6 +192,8 @@ class Battle:
         back_button.pack()
 
         self.gesture_frame.pack()
+
+        self.do_move()
 
     def wait_screen(self, prev_frame = None):
         print("Waiting for opponent move")
@@ -409,7 +437,7 @@ class Game:
 
         if not self.window:
             self.window = tk.Tk()
-            self.window.attributes('-fullscreen',True)
+            #self.window.attributes('-fullscreen',True)
         else:
             winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
         if not self.home_frame:
@@ -676,7 +704,17 @@ class Game:
         self.window.destroy()
 
 
-game = Game(args.username, args.id)
-game.connect_mqtt()
-game.home_screen()
-game.start_game()
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Start the game by typing ./pokEEmon.py <username> <id>"
+    )
+
+    parser.add_argument("username", type=str, help="your in-game username")
+    parser.add_argument("id", type=str, help="your pi id")
+    args = parser.parse_args()
+    print("Welcome " + args.username)
+
+    game = Game(args.username, args.id)
+    game.connect_mqtt()
+    game.home_screen()
+    game.start_game()
