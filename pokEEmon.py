@@ -70,7 +70,7 @@ class Battle:
         if msg and msg[0] == "move" and int(msg[2]) == self.battle_id:
             movename = msg[3]
             pokeemon_name = self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("name")]
-            damage = self.calc_damage(movename, False, int(msg[4]), self.opp_user.team_df.iloc[self.opp_pokemon], self.user.team_df.iloc[self.curr_pokemon])
+            damage = self.calc_damage(movename, int(msg[4]), self.opp_user.team_df.iloc[self.opp_pokemon], self.user.team_df.iloc[self.curr_pokemon])
             hp = self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("hp")]
             hp -= damage
             if hp < 0:
@@ -111,7 +111,7 @@ class Battle:
     def do_move(self):
         winsound.PlaySound('whoosh.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
         random_mult = random.randrange(85,100)
-        damage = self.calc_damage(self.movename, False, random_mult, self.user.team_df.iloc[self.curr_pokemon], self.opp_user.team_df.iloc[self.opp_pokemon])
+        damage = self.calc_damage(self.movename, random_mult, self.user.team_df.iloc[self.curr_pokemon], self.opp_user.team_df.iloc[self.opp_pokemon])
         opp_hp = self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("hp")]
         opp_hp -= damage
         if opp_hp < 0:
@@ -125,9 +125,10 @@ class Battle:
         else:
             self.wait_screen(self.gesture_frame)
 
-    def calc_damage(self, movename, special, random_mult, attack_pk, receive_pk):
+    def calc_damage(self, movename, random_mult, attack_pk, receive_pk):
         random_mult = float(random_mult) * 0.01  #random multiplier from 0.85 to 1
         multiplier = self.find_effectiveness(attack_pk["type"], receive_pk["type"])
+        special = int(self.moves_df.loc[self.moves_df["identifier"] == movename.lower()]["damage_class_id"])
         if (attack_pk["type"] == receive_pk["type"]): #implement same type attack bonus
             stab = 1.5
         else:
@@ -135,7 +136,7 @@ class Battle:
         pwr =  float(self.moves_df.loc[self.moves_df["identifier"] == movename.lower()]["power"])
 
         #special attack calc
-        if (special):
+        if (special == 2):
             damage = ((((((2*attack_pk["level"])/5)+2)*pwr*(attack_pk["special_attack"]/receive_pk["special_defense"]))/50)+2)*stab*multiplier*random_mult
         #physical attack calc
         else:
