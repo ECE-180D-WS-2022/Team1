@@ -565,13 +565,15 @@ class Game:
             camera.release()
 
         if not self.train_frame_begin:
-            self.train_frame_begin = tk.Frame(self.window)
-            tk.Label(self.train_frame_begin, text="Choose Pokemon").pack()
+            self.train_frame_begin = tk.Frame(self.window, bg = "#34cfeb")
+            choose_img =  ImageTk.PhotoImage(Image.open("choose_img.png"))
+            choose_label = tk.Label(self.train_frame_begin, image=choose_img, bg = "#34cfeb")
+            choose_label.photo = choose_img
             pokemon_list = self.user.team_df["name"].tolist()
+            choose_label.pack()
             for pokemon_name in pokemon_list:
-                tk.Button(self.train_frame_begin, text = pokemon_name, command = partial(self.train_screen, pokemon_name)).pack()
-            # tk.Button(self.train_frame_ begin, text="Finish Training", command = partial(self.set_pokemon, "poopoopeepee")).pack()
-            tk.Button(self.train_frame_begin, text = "Back", command = partial(self.home_screen, self.train_frame_begin)).pack()
+                tk.Button(self.train_frame_begin, text = pokemon_name, command = partial(self.train_screen, pokemon_name), height = 4, width = 25, bg="#ffcc03").pack(pady=10)
+            tk.Button(self.train_frame_begin, text = "Back", command = partial(self.home_screen, self.train_frame_begin), height = 4, width = 30, bg="#ffcc03").pack(pady=10)
         self.train_frame_begin.pack()
 
     def train_screen(self, working_pokemon):
