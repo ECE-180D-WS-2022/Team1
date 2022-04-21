@@ -443,11 +443,20 @@ class Game:
         if not self.home_frame:
             self.home_frame = tk.Frame(self.window, bg = "#34cfeb")
             img = ImageTk.PhotoImage(Image.open("logo.png"))
+            
             photo_label = tk.Label(self.home_frame, image = img, bg = "#34cfeb")
             photo_label.photo = img
             battle_button = tk.Button(self.home_frame, text = "Battle", command = partial(self.request_screen, self.home_frame), height = 6, width = 70, bg="#ffcc03")
-            train_button = tk.Button(self.home_frame, text = "Train", command = partial(self.train_screen_begin, self.home_frame), height = 6, width = 70, bg="#ffcc03")
+            train_button = tk.Button(self.home_frame, text = "Train", command = partial(self.train_screen_begin, self.home_frame), height = 6, width = 70, bg = "#ffcc03")
             exit_button = tk.Button(self.home_frame, text = "Exit", command = self.exit_game, height = 6, width = 70, bg="#ffcc03")
+            
+            # button_image = ImageTk.PhotoImage(file="home_button.png")
+            # battle_button.config(image=button_image)
+            # battle_button.image = button_image
+            # train_button.config(image=button_image)
+            # train_button.image = button_image
+            # exit_button.config(image=button_image)
+            # exit_button.image = button_image
 
             photo_label.pack()
             exit_button.pack(side=tk.BOTTOM, pady=10)
@@ -495,15 +504,17 @@ class Game:
         print("Unsubscribed from " + "ece180d/pokEEmon/" + self.user.username + "/response")
 
 
-        self.request_frame = tk.Frame(self.window)
-        request_label = tk.Label(self.request_frame, text="Opponent username")
-        username_entry = tk.Entry(self.request_frame)
-        submit_button = tk.Button(self.request_frame, text = "Submit", command = partial(self.make_request, username_entry))
-        back_button = tk.Button(self.request_frame, text = "Back", command = partial(self.home_screen, self.request_frame))
-        request_label.pack()
-        username_entry.pack()
-        submit_button.pack()
-        back_button.pack()
+        self.request_frame = tk.Frame(self.window, bg = "#34cfeb")
+        request_img = ImageTk.PhotoImage(Image.open("request_img.png"))
+        request_label = tk.Label(self.request_frame, image=request_img, bg = "#34cfeb")
+        request_label.photo = request_img
+        username_entry = tk.Entry(self.request_frame, font=("default", 16))
+        submit_button = tk.Button(self.request_frame, text = "Submit", command = partial(self.make_request, username_entry), height=6, width=40, bg = "#ffcc03")
+        back_button = tk.Button(self.request_frame, text = "Back", command = partial(self.home_screen, self.request_frame), height = 6, width = 40, bg = "#ffcc03")
+        request_label.pack(pady=10)
+        username_entry.pack(pady=10)
+        submit_button.pack(pady=10)
+        back_button.pack(pady=10)
 
         self.request_frame.pack()
 
