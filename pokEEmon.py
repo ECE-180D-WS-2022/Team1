@@ -441,12 +441,15 @@ class Game:
         else:
             winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
         if not self.home_frame:
-            self.home_frame = tk.Frame(self.window)
-            battle_button = tk.Button(self.home_frame, text = "Battle", command = partial(self.request_screen, self.home_frame), height = 6, width = 70)
-            train_button = tk.Button(self.home_frame, text = "Train", command = partial(self.train_screen_begin, self.home_frame), height = 6, width = 70)
-            exit_button = tk.Button(self.home_frame, text = "Exit", command = self.exit_game, height = 6, width = 70)
+            self.home_frame = tk.Frame(self.window, bg = "#34cfeb")
+            img = ImageTk.PhotoImage(Image.open("logo.png"))
+            photo_label = tk.Label(self.home_frame, image = img, bg = "#34cfeb")
+            photo_label.photo = img
+            battle_button = tk.Button(self.home_frame, text = "Battle", command = partial(self.request_screen, self.home_frame), height = 6, width = 70, bg="#ffcc03")
+            train_button = tk.Button(self.home_frame, text = "Train", command = partial(self.train_screen_begin, self.home_frame), height = 6, width = 70, bg="#ffcc03")
+            exit_button = tk.Button(self.home_frame, text = "Exit", command = self.exit_game, height = 6, width = 70, bg="#ffcc03")
 
-
+            photo_label.pack()
             exit_button.pack(side=tk.BOTTOM, pady=10)
             battle_button.pack(side=tk.BOTTOM, pady=10)
             train_button.pack(side=tk.BOTTOM, pady=10)
