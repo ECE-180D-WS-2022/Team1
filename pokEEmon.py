@@ -23,7 +23,7 @@ import winsound
 import math
 #import moves_new as mv
 
-movegesture = {"Thunderbolt" : "slash", "Tackle" : "block", "Ice" : "whip", "Flamethrower" : "scratch"}
+movegesture = {"Thunderbolt" : "slash", "Tackle" : "block", "Water-gun" : "whip", "Flamethrower" : "scratch"}
 
 
 def level_up (pk_df, xp_amt):
@@ -96,6 +96,7 @@ class Battle:
         print(msg)
 
         if msg and msg[0] == "move" and int(msg[2]) == self.battle_id:
+            winsound.PlaySound('whoosh.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
             movename = msg[3]
             pokeemon_name = self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("name")]
             damage = self.calc_damage(movename, int(msg[4]), self.opp_user.team_df.iloc[self.opp_pokemon], self.user.team_df.iloc[self.curr_pokemon])
@@ -134,8 +135,9 @@ class Battle:
 
     def sel_pokemon(self, index):
         self.curr_pokemon = index
-        choose_msg = "change,{},{},{}".format(self.user.username, self.battle_id, index)
-        self.client.publish("ece180d/pokEEmon/" + self.opp_user.username + "/change", choose_msg)
+        if not self.singleplayer:
+            choose_msg = "change,{},{},{}".format(self.user.username, self.battle_id, index)
+            self.client.publish("ece180d/pokEEmon/" + self.opp_user.username + "/change", choose_msg)
         self.move_screen(self.choose_frame)
 
     def do_move(self):
@@ -147,8 +149,11 @@ class Battle:
         if opp_curr_hp < 0:
             opp_curr_hp = 0
         self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("curr_hp")] = opp_curr_hp
-        move_msg = "move,{},{},{},{}".format(self.user.username, self.battle_id, self.movename, random_mult)
-        self.client.publish("ece180d/pokEEmon/" + self.opp_user.username + "/move", move_msg)
+
+        if not self.singleplayer:
+            move_msg = "move,{},{},{},{}".format(self.user.username, self.battle_id, self.movename, random_mult)
+            self.client.publish("ece180d/pokEEmon/" + self.opp_user.username + "/move", move_msg)
+
         if self.opp_user.team_df[self.opp_user.team_df["curr_hp"] > 0].empty:
             print("You won!")
 
@@ -228,9 +233,10 @@ class Battle:
 
         self.movename = self.user.team_df.iloc[self.curr_pokemon][move]
 
-        self.client.on_message = self.rcv_gesture_mqtt
-        self.client.subscribe("ece180d/pokEEmon/" + self.id, qos=1)
-        print("Subscribed to " + "ece180d/pokEEmon/" + self.id)
+        if not self.singleplayer:
+            self.client.on_message = self.rcv_gesture_mqtt
+            self.client.subscribe("ece180d/pokEEmon/" + self.id, qos=1)
+            print("Subscribed to " + "ece180d/pokEEmon/" + self.id)
 
         self.gesture_frame = tk.Frame(self.window, bg = "#34cfeb")
         gesture_label = tk.Label(self.gesture_frame, text="Do a {} ".format(movegesture[self.movename]), font=("Arial", 25), bg= "#34cfeb")
@@ -249,13 +255,15 @@ class Battle:
         if self.wait_frame:
             self.wait_frame.destroy()
 
-        self.client.on_message = self.rcv_battle_mqtt
-        self.client.unsubscribe("ece180d/pokEEmon/" + self.id)
-        self.client.subscribe("ece180d/pokEEmon/" + self.user.username + "/move", qos=1)
-        self.client.subscribe("ece180d/pokEEmon/" + self.user.username + "/change", qos=1)
-        self.client.unsubscribe("ece180d/pokEEmon/" + self.id)
-        print("Subscribed to " + "ece180d/pokEEmon/" + self.user.username + "/move")
-        print("Subscribed to " + "ece180d/pokEEmon/" + self.user.username + "/change")
+
+        if not self.singleplayer:
+            self.client.on_message = self.rcv_battle_mqtt
+            self.client.unsubscribe("ece180d/pokEEmon/" + self.id)
+            self.client.subscribe("ece180d/pokEEmon/" + self.user.username + "/move", qos=1)
+            self.client.subscribe("ece180d/pokEEmon/" + self.user.username + "/change", qos=1)
+            self.client.unsubscribe("ece180d/pokEEmon/" + self.id)
+            print("Subscribed to " + "ece180d/pokEEmon/" + self.user.username + "/move")
+            print("Subscribed to " + "ece180d/pokEEmon/" + self.user.username + "/change")
 
         self.wait_frame = tk.Frame(self.window, bg = "#34cfeb")
         wait_label = tk.Label(self.wait_frame, text="Waiting for {} to move".format(self.opp_user.username),bg = "#34cfeb", font=("Arial", 30))
@@ -272,6 +280,47 @@ class Battle:
         oppteam_label.pack()
         self.wait_frame.pack()
 
+        if self.singleplayer:
+            self.window.after(1000, lambda : self.bot_move(self.wait_frame))
+
+    def bot_move(self, prev_frame = None):
+        winsound.PlaySound('whoosh.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
+        if prev_frame:
+            prev_frame.pack_forget()
+
+        # bot will choose the move with the best damage
+        random_mult = random.randrange(85,100)
+        best_damage = -1
+        best_pk = None
+        best_move = None
+        for i in range(self.opp_user.team_df.shape[0]):
+            pk = self.opp_user.team_df.loc[i]
+            if pk["curr_hp"] <= 0:
+                continue
+            for move in ["move1", "move2", "move3", "move4"]:
+                movename = pk[move]
+                damage = self.calc_damage(movename, random_mult, pk, self.user.team_df.iloc[self.curr_pokemon])
+                if damage > best_damage:
+                    best_damage = damage
+                    best_pk = i
+                    best_move = movename
+
+        self.opp_pokemon = best_pk
+        pokeemon_name = self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("name")]
+        curr_hp = self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("curr_hp")]
+        curr_hp -= best_damage
+        if curr_hp < 0:
+            curr_hp = 0
+        self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("curr_hp")] = curr_hp
+        if self.user.team_df[self.user.team_df["curr_hp"] > 0].empty:
+            print("You lost")
+            self.user.gamestats_df["games_played"] += 1
+            self.user.gamestats_df.to_csv(self.user.path + "/gamestats.csv", index=False, quoting=csv.QUOTE_NONNUMERIC)
+            self.home()
+        else:
+            self.move_screen(move_update = "{}'s {} played {}".format(self.opp_user.username.capitalize(), pokeemon_name, best_move))
+
+
     def move_screen(self, prev_frame = None, move_update = None):
         print("Choose your move")
         winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
@@ -280,13 +329,13 @@ class Battle:
         if self.move_frame:
             self.move_frame.destroy()
 
-        #TODO check for cancel
-        self.client.unsubscribe("ece180d/pokEEmon/" + self.id)
-        self.client.unsubscribe("ece180d/pokEEmon/" + self.user.username + "/move")
-        self.client.unsubscribe("ece180d/pokEEmon/" + self.user.username + "/change")
-        print("Unsubscribed to " + "ece180d/pokEEmon/" + self.id)
-        print("Unsubscribed to " + "ece180d/pokEEmon/" + self.user.username + "/move")
-        print("Unsubscribed to " + "ece180d/pokEEmon/" + self.user.username + "/change")
+        if not self.singleplayer:
+            self.client.unsubscribe("ece180d/pokEEmon/" + self.id)
+            self.client.unsubscribe("ece180d/pokEEmon/" + self.user.username + "/move")
+            self.client.unsubscribe("ece180d/pokEEmon/" + self.user.username + "/change")
+            print("Unsubscribed to " + "ece180d/pokEEmon/" + self.id)
+            print("Unsubscribed to " + "ece180d/pokEEmon/" + self.user.username + "/move")
+            print("Unsubscribed to " + "ece180d/pokEEmon/" + self.user.username + "/change")
 
         self.move_frame = tk.Frame(self.window, bg = "#34cfeb")
 
@@ -312,7 +361,7 @@ class Battle:
             # change_label = tk.Label(self.move_frame, text="Change your pokemon", bg = "#34cfeb", font=("Arial", 30))
             img_2 = ImageTk.PhotoImage(Image.open("change_pokemon.png"))
             change_label = tk.Label(self.move_frame, image = img_2, bg = "#34cfeb")
-            change_label.photo = img
+            change_label.photo = img_2
             change_label.pack()
 
         user_pokemon_name = self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("name")]
@@ -628,7 +677,7 @@ class Game:
         self.opp_user = User()
         self.opp_user.username = "Bot"
         basepk_df = pd.read_csv("data/pokemon.csv")
-        num_pk = random.randint(2, 6)
+        num_pk = random.randint(2, 5)
         self.opp_user.team_df = basepk_df.sample(n = num_pk)
         self.opp_user.team_df.reset_index(drop=True, inplace=True)
 
@@ -641,15 +690,13 @@ class Game:
 
         print("Generated opponent team:")
         print(self.opp_user.team_df)
-        
-        self.home_screen()
-        # return
-        #
-        # b = Battle(self.user, None, self.opp_user, self.window, None, self.home_screen, self.id, True)
-        # if random.randint(0, 1):
-        #     b.move_screen()
-        # else:
-        #     b.wait_screen()
+
+
+        b = Battle(self.user, None, self.opp_user, self.window, None, self.home_screen, self.id, True)
+        if random.randint(0, 1):
+            b.move_screen()
+        else:
+            b.wait_screen()
 
 
     def set_pokemon(self, pokemon_name):
