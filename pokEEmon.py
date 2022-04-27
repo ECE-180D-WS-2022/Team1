@@ -271,7 +271,10 @@ class Battle:
             update_label = tk.Label(self.wait_frame, text=move_update, bg = "#34cfeb", font=("Arial", 30))
             update_label.pack()
 
-        wait_label = tk.Label(self.wait_frame, text="Waiting for opponent move",bg = "#34cfeb", font=("Arial", 30))
+        # wait_label = tk.Label(self.wait_frame, text="Waiting for opponent move",bg = "#34cfeb", font=("Arial", 30))
+        wait_img =  ImageTk.PhotoImage(Image.open("wait_opponent_move_img.png"))
+        wait_label = tk.Label(self.wait_frame, image=wait_img, bg = "#34cfeb")
+        wait_label.photo = wait_img
         user_pokemon_name = self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("name")]
         userteam_string = self.user.team_df.loc[:, ["name", "curr_hp"]].to_string(index=False)
         userteam_string = userteam_string.replace(user_pokemon_name, "**" + user_pokemon_name)
@@ -280,7 +283,7 @@ class Battle:
         oppteam_string = self.opp_user.team_df.loc[:, ["name", "curr_hp"]].to_string(index=False)
         oppteam_string = oppteam_string.replace(opp_pokemon_name, "**" + opp_pokemon_name)
         oppteam_label = tk.Label(self.wait_frame, text="\nOpponent team: \n{}\n".format(oppteam_string), bg = "#34cfeb", font=("Arial", 30))
-        wait_label.pack()
+        wait_label.pack(pady = 5)
         userteam_label.pack()
         oppteam_label.pack()
         self.wait_frame.pack()
@@ -582,7 +585,10 @@ class Game:
 
         if not self.choose_opp_frame:
             self.choose_opp_frame = tk.Frame(self.window, bg = "#34cfeb")
-            mode_label = tk.Label(self.choose_opp_frame, text = "Choose Battle Mode")
+            # mode_label = tk.Label(self.choose_opp_frame, text = "Choose Battle Mode")
+            mode_img =  ImageTk.PhotoImage(Image.open("choose_battle_mode_img.png"))
+            mode_label = tk.Label(self.choose_opp_frame, image=mode_img, bg = "#34cfeb")
+            mode_label.photo = mode_img
             single_button = tk.Button(self.choose_opp_frame, text = "Single-player", command = partial(self.single_battle, self.choose_opp_frame), height=6, width=40, bg = "#ffcc03")
             multi_button = tk.Button(self.choose_opp_frame, text = "Multi-player", command = partial(self.request_screen, self.choose_opp_frame), height=6, width=40, bg = "#ffcc03")
             back_button = tk.Button(self.choose_opp_frame, text = "Back", command = partial(self.home_screen, self.choose_opp_frame), height=6, width = 40, bg = "#ffcc03")
