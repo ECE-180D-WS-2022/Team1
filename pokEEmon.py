@@ -114,7 +114,7 @@ class Battle:
                 self.move_screen(self.wait_frame, "{}'s {} played {}".format(self.opp_user.username.capitalize(), pokeemon_name, movename))
         elif msg and msg[0] == "change" and int(msg[2]) == self.battle_id:
             self.opp_pokemon = int(msg[3])
-            self.wait_screen(self.wait_frame)
+            self.wait_screen(self.wait_frame, "{} changed their pokEEmon to {}".format(self.opp_user.username, self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("name")]))
         else:
             print("Received unexpected message")
 
@@ -174,7 +174,7 @@ class Battle:
 
             self.home(self.gesture_frame)
         else:
-            self.wait_screen(self.gesture_frame)
+            self.wait_screen(self.gesture_frame, "Your {} played {}".format(self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("name")], self.movename))
 
     def calc_damage(self, movename, random_mult, attack_pk, receive_pk):
         random_mult = float(random_mult) * 0.01  #random multiplier from 0.85 to 1
@@ -227,7 +227,7 @@ class Battle:
         if self.gesture_frame:
             self.gesture_frame.destroy()
 
-        if self.stop_listening:
+        if self.stop_listening is not None:
             self.stop_listening(wait_for_stop=False)
             self.stop_listening = None
 
@@ -248,7 +248,7 @@ class Battle:
 
         self.do_move()
 
-    def wait_screen(self, prev_frame = None):
+    def wait_screen(self, prev_frame = None, move_update = None):
         print("Waiting for opponent move")
         if prev_frame:
             prev_frame.pack_forget()
@@ -266,7 +266,12 @@ class Battle:
             print("Subscribed to " + "ece180d/pokEEmon/" + self.user.username + "/change")
 
         self.wait_frame = tk.Frame(self.window, bg = "#34cfeb")
-        wait_label = tk.Label(self.wait_frame, text="Waiting for {} to move".format(self.opp_user.username),bg = "#34cfeb", font=("Arial", 30))
+
+        if move_update:
+            update_label = tk.Label(self.wait_frame, text=move_update, bg = "#34cfeb", font=("Arial", 30))
+            update_label.pack()
+
+        wait_label = tk.Label(self.wait_frame, text="Waiting for opponent move",bg = "#34cfeb", font=("Arial", 30))
         user_pokemon_name = self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("name")]
         userteam_string = self.user.team_df.loc[:, ["name", "curr_hp"]].to_string(index=False)
         userteam_string = userteam_string.replace(user_pokemon_name, "**" + user_pokemon_name)
@@ -281,7 +286,7 @@ class Battle:
         self.wait_frame.pack()
 
         if self.singleplayer:
-            self.window.after(1000, lambda : self.bot_move(self.wait_frame))
+            self.window.after(3000, lambda : self.bot_move(self.wait_frame))
 
     def bot_move(self, prev_frame = None):
         winsound.PlaySound('whoosh.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
@@ -357,6 +362,15 @@ class Battle:
             move2_button.pack(pady=10)
             move3_button.pack(pady=10)
             move4_button.pack(pady=5)
+
+            if self.mic is None:
+                print("Setting up mic and receiver for speech recognition")
+                self.mic = sr.Microphone()
+                self.rec = sr.Recognizer()
+                with self.mic as source:
+                    self.rec.adjust_for_ambient_noise(source)
+
+            self.stop_listening = self.rec.listen_in_background(self.mic, self.voice_callback, 2)
         else:
             # change_label = tk.Label(self.move_frame, text="Change your pokemon", bg = "#34cfeb", font=("Arial", 30))
             img_2 = ImageTk.PhotoImage(Image.open("change_pokemon.png"))
@@ -380,21 +394,13 @@ class Battle:
         self.move_frame.pack()
 
 
-        self.mic = sr.Microphone()
-        self.rec = sr.Recognizer()
-        with self.mic as source:
-            self.rec.adjust_for_ambient_noise(source)
-
-        self.stop_listening = self.rec.listen_in_background(self.mic, self.voice_callback, 3)
-
-
     def choose_screen(self, prev_frame = None):
         winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
         if self.move_frame:
             self.move_frame.pack_forget()
         if self.choose_frame:
             self.choose_frame.destroy()
-        if self.stop_listening:
+        if self.stop_listening is not None:
             self.stop_listening(wait_for_stop=False)
             self.stop_listening = None
 
@@ -684,8 +690,7 @@ class Game:
         total_xp = sum(self.user.team_df["xp_accumulated"].values)
 
         for i in range(self.opp_user.team_df.shape[0]):
-            xp_boost = max(0, random.randint(total_xp // num_pk - 1500, total_xp // num_pk + 1000))
-            print(xp_boost)
+            xp_boost = max(0, random.randint(total_xp // num_pk - 2000, total_xp // num_pk + 1000))
             self.opp_user.team_df.loc[i] = level_up(self.opp_user.team_df.loc[i], xp_boost)
 
         print("Generated opponent team:")
