@@ -246,7 +246,8 @@ class Battle:
 
         self.gesture_frame.pack()
 
-        self.do_move()
+
+        self.window.after(3000, self.do_move)
 
     def wait_screen(self, prev_frame = None, move_update = None):
         print("Waiting for opponent move")
@@ -267,9 +268,11 @@ class Battle:
 
         self.wait_frame = tk.Frame(self.window, bg = "#34cfeb")
 
-        if move_update:
+        if move_update is not None:
             update_label = tk.Label(self.wait_frame, text=move_update, bg = "#34cfeb", font=("Arial", 30))
             update_label.pack()
+        else:
+            winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
 
         # wait_label = tk.Label(self.wait_frame, text="Waiting for opponent move",bg = "#34cfeb", font=("Arial", 30))
         wait_img =  ImageTk.PhotoImage(Image.open("wait_opponent_move_img.png"))
@@ -331,7 +334,7 @@ class Battle:
 
     def move_screen(self, prev_frame = None, move_update = None):
         print("Choose your move")
-        winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
+
         if prev_frame:
             prev_frame.pack_forget()
         if self.move_frame:
@@ -350,6 +353,9 @@ class Battle:
         if move_update:
             update_label = tk.Label(self.move_frame, text=move_update, bg = "#34cfeb", font=("Arial", 30))
             update_label.pack()
+            winsound.PlaySound('whoosh.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
+        else:
+            winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
 
         if self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("curr_hp")] > 0:
             # move_label = tk.Label(self.move_frame, text="Choose your move", bg = "#34cfeb", font=("Arial", 30))
@@ -811,12 +817,12 @@ class Game:
                     #### LEVELING UP ####
                     for i in range(self.user.team_df.shape[0]):
                         self.user.team_df.loc[i] = level_up(self.user.team_df.loc[i], 20)
-                    
+
                     print("Writing updated team to {}".format(self.user.path + "/team.csv"))
                     print(self.user.team_df)
 
                     self.user.team_df.to_csv(self.user.path + "/team.csv", index=False, quoting=csv.QUOTE_NONNUMERIC)
-                
+
                     self.desired_pose = self.choose_pose()
                     desired_pose_label.config(text = f"Match the pose of: {self.desired_pose}")
 
