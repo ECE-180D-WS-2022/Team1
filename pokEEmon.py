@@ -30,41 +30,33 @@ def level_up (pk_df, xp_amt):
     #1000 xp to level up
     current_xp =  pk_df["xp_accumulated"]
     current_xp += xp_amt
-    lvl = pk_df["level"]
-    hp = pk_df["hp"]
-    atk = pk_df["attack"]
-    defs = pk_df["defense"]
-    spatk = pk_df["special_attack"]
-    spdef = pk_df["special_defense"]
-    speed = pk_df["speed"]
-    while (int(current_xp) > (int(lvl) * 1000)):
-        hp = int(((((2*hp) + random.randrange(28,31) + 20.25) * lvl)/100) + lvl + 10)
-        atk = int(((((2*atk) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
-        defs = int(((((2*defs) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
-        spatk = int(((((2*spatk) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
-        spdef = int(((((2*spdef) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
-        speed = int(((((2*speed) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
-        lvl += 1
-
     ans = pk_df.copy()
     ans["xp_accumulated"] = current_xp
-    ans["level"] = lvl
-    ans["hp"] = hp
-    ans["attack"] = atk
-    ans["defense"] = defs
-    ans["special_attack"] = spatk
-    ans["special_defense"] = spdef
-    ans["speed"] = speed
+
+    if int(current_xp) // 1000 >= int(pk_df["level"]):
+        # level up
+        # get base stats
+        basepk_df = pd.read_csv("data/pokemon.csv")
+        basepk_df = basepk_df.loc[basepk_df["name"] == pk_df["name"]]
+        # use base stats to calculate new level
+        lvl = int(current_xp) // 1000 + 1
+        ans["level"] = lvl
+        ans["hp"] = int(((((2*int(basepk_df["hp"])) + random.randrange(28,31) + 20.25) * lvl)/100) + lvl + 10)
+        ans["attack"] = int(((((2*basepk_df["attack"]) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
+        ans["defense"] = int(((((2*basepk_df["defense"]) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
+        ans["special_attack"] = int(((((2*basepk_df["special_attack"]) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
+        ans["special_defense"] = int(((((2*basepk_df["special_defense"]) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
+        ans["speed"] = int(((((2*basepk_df["speed"]) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
 
     return ans
-
-
 
 class Battle:
     def __init__(self, user, battle_id, opp_user, window, client, home, id):
         self.user = copy.deepcopy(user)
+        self.user.team_df["curr_hp"] = self.user.team_df["hp"]
         self.battle_id = battle_id
         self.opp_user = copy.deepcopy(opp_user)
+        self.opp_user.team_df["curr_hp"] = self.opp_user.team_df["hp"]
         self.window = window
         self.client = client
         self.home = home
@@ -106,12 +98,12 @@ class Battle:
             movename = msg[3]
             pokeemon_name = self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("name")]
             damage = self.calc_damage(movename, int(msg[4]), self.opp_user.team_df.iloc[self.opp_pokemon], self.user.team_df.iloc[self.curr_pokemon])
-            hp = self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("hp")]
-            hp -= damage
-            if hp < 0:
-                hp = 0
-            self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("hp")] = hp
-            if  self.user.team_df[self.user.team_df["hp"] > 0].empty:
+            curr_hp = self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("curr_hp")]
+            curr_hp -= damage
+            if curr_hp < 0:
+                curr_hp = 0
+            self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("curr_hp")] = curr_hp
+            if self.user.team_df[self.user.team_df["curr_hp"] > 0].empty:
                 print("You lost")
                 self.home(self.wait_frame)
             else:
@@ -147,33 +139,23 @@ class Battle:
         winsound.PlaySound('whoosh.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
         random_mult = random.randrange(85,100)
         damage = self.calc_damage(self.movename, random_mult, self.user.team_df.iloc[self.curr_pokemon], self.opp_user.team_df.iloc[self.opp_pokemon])
-        opp_hp = self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("hp")]
-        opp_hp -= damage
-        if opp_hp < 0:
-            opp_hp = 0
-        self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("hp")] = opp_hp
+        opp_curr_hp = self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("curr_hp")]
+        opp_curr_hp -= damage
+        if opp_curr_hp < 0:
+            opp_curr_hp = 0
+        self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("curr_hp")] = opp_curr_hp
         move_msg = "move,{},{},{},{}".format(self.user.username, self.battle_id, self.movename, random_mult)
         self.client.publish("ece180d/pokEEmon/" + self.opp_user.username + "/move", move_msg)
-        if self.opp_user.team_df[self.opp_user.team_df["hp"] > 0].empty:
+        if self.opp_user.team_df[self.opp_user.team_df["curr_hp"] > 0].empty:
             print("You won!")
 
-            self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "xp_accumulated"] += 20
-            #1000 xp to level up
-            current_xp =  self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "xp_accumulated"]
-            lvl = self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "level"]
-            hp = self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "hp"]
-            atk = self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "atk"]
-            spatk = self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "special_attack"]
-            spdef = self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "special_defense"]
-            speed = self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "speed"]
-            if (current_xp > (lvl * 1000)):
-                #TODO: implement leveling
-                self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "level"] += 1
-                self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "hp"] = int(((((2*hp) + random.randrange(28,31) + 20.25) * lvl)/100) + lvl + 10)
-                self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "atk"] = int(((((2*atk) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
-                self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "special_attack"] = int(((((2*spatk) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
-                self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "special_defense"] = int(((((2*spdef) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
-                self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "speed"] = int(((((2*speed) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
+            xp_reward = sum(self.opp_user.team_df["xp_reward"].values)
+            self.user.team_df.drop('curr_hp', axis=1, inplace=True)
+
+            for i in range(self.user.team_df.shape[0]):
+                self.user.team_df.loc[i] = level_up(self.user.team_df.loc[i], xp_reward)
+
+            self.user.team_df.to_csv(self.user.path + "/team.csv")
 
             self.home(self.gesture_frame)
         else:
@@ -268,11 +250,11 @@ class Battle:
         self.wait_frame = tk.Frame(self.window, bg = "#34cfeb")
         wait_label = tk.Label(self.wait_frame, text="Waiting for {} to move".format(self.opp_user.username),bg = "#34cfeb", font=("Arial", 30))
         user_pokemon_name = self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("name")]
-        userteam_string = self.user.team_df.loc[:, ["name", "hp"]].to_string(index=False)
+        userteam_string = self.user.team_df.loc[:, ["name", "curr_hp"]].to_string(index=False)
         userteam_string = userteam_string.replace(user_pokemon_name, "**" + user_pokemon_name)
         userteam_label = tk.Label(self.wait_frame, text="\nYour team: \n{}\n".format(userteam_string), bg = "#34cfeb", font=("Arial", 30))
         opp_pokemon_name = self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("name")]
-        oppteam_string = self.opp_user.team_df.loc[:, ["name", "hp"]].to_string(index=False)
+        oppteam_string = self.opp_user.team_df.loc[:, ["name", "curr_hp"]].to_string(index=False)
         oppteam_string = oppteam_string.replace(opp_pokemon_name, "**" + opp_pokemon_name)
         oppteam_label = tk.Label(self.wait_frame, text="\nOpponent team: \n{}\n".format(oppteam_string), bg = "#34cfeb", font=("Arial", 30))
         wait_label.pack()
@@ -302,7 +284,7 @@ class Battle:
             update_label = tk.Label(self.move_frame, text=move_update, bg = "#34cfeb", font=("Arial", 30))
             update_label.pack()
 
-        if self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("hp")] > 0:
+        if self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("curr_hp")] > 0:
             # move_label = tk.Label(self.move_frame, text="Choose your move", bg = "#34cfeb", font=("Arial", 30))
             img = ImageTk.PhotoImage(Image.open("choose_move_img.png"))
             move_label = tk.Label(self.move_frame, image = img, bg = "#34cfeb")
@@ -324,11 +306,11 @@ class Battle:
             change_label.pack()
 
         user_pokemon_name = self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("name")]
-        userteam_string = self.user.team_df.loc[:, ["name", "hp"]].to_string(index=False)
+        userteam_string = self.user.team_df.loc[:, ["name", "curr_hp"]].to_string(index=False)
         userteam_string = userteam_string.replace(user_pokemon_name, "**" + user_pokemon_name)
         userteam_label = tk.Label(self.move_frame, text="\nYour team: \n{}\n".format(userteam_string), bg = "#34cfeb", font=("Arial", 30))
         opp_pokemon_name = self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("name")]
-        oppteam_string = self.opp_user.team_df.loc[:, ["name", "hp"]].to_string(index=False)
+        oppteam_string = self.opp_user.team_df.loc[:, ["name", "curr_hp"]].to_string(index=False)
         oppteam_string = oppteam_string.replace(opp_pokemon_name, "**" + opp_pokemon_name)
         oppteam_label = tk.Label(self.move_frame, text="\nOpponent team: \n{}\n".format(oppteam_string), bg = "#34cfeb", font=("Arial", 30))
         change_button = tk.Button(self.move_frame, text="Change pokEEmon", command = self.choose_screen, height = 4, width = 50, bg="#ffcc03")
@@ -363,9 +345,9 @@ class Battle:
         choose_label.photo = img
         # choose_label = tk.Label(self.choose_frame, text="Choose your pokemon", bg = "#34cfeb")
         choose_label.pack()
-        user_pokemon = self.user.team_df.loc[:,["name","hp"]]
+        user_pokemon = self.user.team_df.loc[:,["name","curr_hp"]]
         for row in user_pokemon.itertuples():
-            if row.hp > 0:
+            if row.curr_hp > 0:
                 pokemon_button = tk.Button(self.choose_frame, text=row.name, command = partial(self.sel_pokemon, row.Index), height=6, width=40, bg = "#ffcc03")
                 pokemon_button.pack(pady=10)
         self.choose_frame.pack()
