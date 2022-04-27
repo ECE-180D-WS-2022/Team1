@@ -51,7 +51,7 @@ def level_up (pk_df, xp_amt):
     return ans
 
 class Battle:
-    def __init__(self, user, battle_id, opp_user, window, client, home, id):
+    def __init__(self, user, battle_id, opp_user, window, client, home, id, singleplayer = False):
         self.user = user
         self.user.team_df["curr_hp"] = self.user.team_df["hp"]
         self.battle_id = battle_id
@@ -72,6 +72,7 @@ class Battle:
         self.id = id
         self.movename = None
         self.moves_df = pd.read_csv("data/moves.csv")
+        self.singleplayer = singleplayer
 
     def rcv_gesture_mqtt(self, client, userdata, message):
         print("Received move message")
@@ -624,7 +625,32 @@ class Game:
         if prev_screen:
             prev_screen.pack_forget()
 
+        self.opp_user = User()
+        self.opp_user.username = "Bot"
+        basepk_df = pd.read_csv("data/pokemon.csv")
+        num_pk = random.randint(2, 6)
+        self.opp_user.team_df = basepk_df.sample(n = num_pk)
+        self.opp_user.team_df.reset_index(drop=True, inplace=True)
+
+        total_xp = sum(self.user.team_df["xp_accumulated"].values)
+
+        for i in range(self.opp_user.team_df.shape[0]):
+            xp_boost = max(0, random.randint(total_xp // num_pk - 1500, total_xp // num_pk + 1000))
+            print(xp_boost)
+            self.opp_user.team_df.loc[i] = level_up(self.opp_user.team_df.loc[i], xp_boost)
+
+        print("Generated opponent team:")
+        print(self.opp_user.team_df)
+        
         self.home_screen()
+        # return
+        #
+        # b = Battle(self.user, None, self.opp_user, self.window, None, self.home_screen, self.id, True)
+        # if random.randint(0, 1):
+        #     b.move_screen()
+        # else:
+        #     b.wait_screen()
+
 
     def set_pokemon(self, pokemon_name):
         '''
