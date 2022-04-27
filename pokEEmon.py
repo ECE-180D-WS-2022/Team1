@@ -109,7 +109,7 @@ class Battle:
                 print("You lost")
                 self.user.gamestats_df["games_played"] += 1
                 self.user.gamestats_df.to_csv(self.user.path + "/gamestats.csv", index=False, quoting=csv.QUOTE_NONNUMERIC)
-                self.home(self.wait_frame)
+                self.gameover_screen(False, self.wait_frame)
             else:
                 self.move_screen(self.wait_frame, "{}'s {} played {}".format(self.opp_user.username.capitalize(), pokeemon_name, movename))
         elif msg and msg[0] == "change" and int(msg[2]) == self.battle_id:
@@ -172,7 +172,7 @@ class Battle:
             self.user.gamestats_df["wins"] += 1
             self.user.gamestats_df.to_csv(self.user.path + "/gamestats.csv", index=False, quoting=csv.QUOTE_NONNUMERIC)
 
-            self.home(self.gesture_frame)
+            self.gameover_screen(True, self.gesture_frame)
         else:
             self.wait_screen(self.gesture_frame, "Your {} played {}".format(self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("name")], self.movename))
 
@@ -247,7 +247,8 @@ class Battle:
         self.gesture_frame.pack()
 
 
-        self.window.after(3000, self.do_move)
+        # TODO: remove this when using gestures
+        self.window.after(1000, self.do_move)
 
     def wait_screen(self, prev_frame = None, move_update = None):
         print("Waiting for opponent move")
@@ -294,6 +295,22 @@ class Battle:
         if self.singleplayer:
             self.window.after(3000, lambda : self.bot_move(self.wait_frame))
 
+    def gameover_screen(self, won, prev_frame = None):
+        if prev_frame:
+            prev_frame.pack_forget()
+
+        gameover_frame = tk.Frame(self.window, bg = "#34cfeb")
+        if won:
+            gameover_label = tk.Label(gameover_frame, text="You won!")
+        else:
+            gameover_label = tk.Label(gameover_frame, text="You lost")
+
+        home_button = tk.Button(gameover_frame, text="Home", command = partial(self.home, gameover_frame), height = 6, width = 70, bg="#ffcc03")
+
+        gameover_label.pack(pady = 5)
+        home_button.pack(pady = 5)
+        gameover_frame.pack()
+
     def bot_move(self, prev_frame = None):
         winsound.PlaySound('whoosh.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
         if prev_frame:
@@ -327,7 +344,7 @@ class Battle:
             print("You lost")
             self.user.gamestats_df["games_played"] += 1
             self.user.gamestats_df.to_csv(self.user.path + "/gamestats.csv", index=False, quoting=csv.QUOTE_NONNUMERIC)
-            self.home()
+            self.gameover_screen(False)
         else:
             self.move_screen(move_update = "{}'s {} played {}".format(self.opp_user.username.capitalize(), pokeemon_name, best_move))
 
