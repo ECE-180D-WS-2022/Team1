@@ -52,10 +52,10 @@ def level_up (pk_df, xp_amt):
 
 class Battle:
     def __init__(self, user, battle_id, opp_user, window, client, home, id):
-        self.user = copy.deepcopy(user)
+        self.user = user
         self.user.team_df["curr_hp"] = self.user.team_df["hp"]
         self.battle_id = battle_id
-        self.opp_user = copy.deepcopy(opp_user)
+        self.opp_user = opp_user
         self.opp_user.team_df["curr_hp"] = self.opp_user.team_df["hp"]
         self.window = window
         self.client = client
@@ -105,6 +105,8 @@ class Battle:
             self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("curr_hp")] = curr_hp
             if self.user.team_df[self.user.team_df["curr_hp"] > 0].empty:
                 print("You lost")
+                self.user.gamestats_df["games_played"] += 1
+                self.user.gamestats_df.to_csv(self.user.path + "/gamestats.csv", index=False, quoting=csv.QUOTE_NONNUMERIC)
                 self.home(self.wait_frame)
             else:
                 self.move_screen(self.wait_frame, "{}'s {} played {}".format(self.opp_user.username.capitalize(), pokeemon_name, movename))
@@ -155,7 +157,14 @@ class Battle:
             for i in range(self.user.team_df.shape[0]):
                 self.user.team_df.loc[i] = level_up(self.user.team_df.loc[i], xp_reward)
 
-            self.user.team_df.to_csv(self.user.path + "/team.csv")
+            print("Writing updated team to {}".format(self.user.path + "/team.csv"))
+            print(self.user.team_df)
+
+            self.user.team_df.to_csv(self.user.path + "/team.csv", index=False, quoting=csv.QUOTE_NONNUMERIC)
+
+            self.user.gamestats_df["games_played"] += 1
+            self.user.gamestats_df["wins"] += 1
+            self.user.gamestats_df.to_csv(self.user.path + "/gamestats.csv", index=False, quoting=csv.QUOTE_NONNUMERIC)
 
             self.home(self.gesture_frame)
         else:
@@ -386,6 +395,7 @@ class Game:
         self.opp_user = None
         self.window = None
         self.home_frame = None
+        self.choose_opp_frame = None
         self.receive_frame = None
         self.request_frame = None
         self.response_frame = None
@@ -493,7 +503,7 @@ class Game:
 
             photo_label = tk.Label(self.home_frame, image = img, bg = "#34cfeb")
             photo_label.photo = img
-            battle_button = tk.Button(self.home_frame, text = "Battle", command = partial(self.request_screen, self.home_frame), height = 6, width = 70, bg="#ffcc03")
+            battle_button = tk.Button(self.home_frame, text = "Battle", command = partial(self.choose_opp_screen, self.home_frame), height = 6, width = 70, bg="#ffcc03")
             train_button = tk.Button(self.home_frame, text = "Train", command = partial(self.train_screen_begin, self.home_frame), height = 6, width = 70, bg = "#ffcc03")
             exit_button = tk.Button(self.home_frame, text = "Exit", command = self.exit_game, height = 6, width = 70, bg="#ffcc03")
 
@@ -502,6 +512,28 @@ class Game:
             train_button.pack(pady=10)
             exit_button.pack(pady=10)
         self.home_frame.pack(fill='both', expand=True)
+
+    def choose_opp_screen(self, prev_screen = None):
+        print("Choose opp screen")
+        winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
+
+        if prev_screen:
+            prev_screen.pack_forget()
+
+        self.client.unsubscribe("ece180d/pokEEmon/" + self.user.username + "/request")
+        print("Unsubscribed from " + "ece180d/pokEEmon/" + self.user.username + "/request")
+
+        if not self.choose_opp_frame:
+            self.choose_opp_frame = tk.Frame(self.window, bg = "#34cfeb")
+            single_button = tk.Button(self.choose_opp_frame, text = "Single-player", command = partial(self.single_battle, self.choose_opp_frame), height=6, width=40, bg = "#ffcc03")
+            multi_button = tk.Button(self.choose_opp_frame, text = "Multi-player", command = partial(self.request_screen, self.choose_opp_frame), height=6, width=40, bg = "#ffcc03")
+            back_button = tk.Button(self.choose_opp_frame, text = "Back", command = partial(self.home_screen, self.choose_opp_frame), height=6, width = 40, bg = "#ffcc03")
+
+            single_button.pack(pady=10)
+            multi_button.pack(pady=10)
+            back_button.pack(pady=10)
+
+        self.choose_opp_frame.pack()
 
     def receive_screen(self, opp_username):
         print("Receive screen")
@@ -541,9 +573,7 @@ class Game:
         if self.request_frame:
             self.request_frame.destroy()
 
-        self.client.unsubscribe("ece180d/pokEEmon/" + self.user.username + "/request")
         self.client.unsubscribe("ece180d/pokEEmon/" + self.user.username + "/response")
-        print("Unsubscribed from " + "ece180d/pokEEmon/" + self.user.username + "/request")
         print("Unsubscribed from " + "ece180d/pokEEmon/" + self.user.username + "/response")
 
         self.request_frame = tk.Frame(self.window, bg = "#34cfeb")
@@ -552,7 +582,7 @@ class Game:
         request_label.photo = request_img
         username_entry = tk.Entry(self.request_frame, font=("default", 16))
         submit_button = tk.Button(self.request_frame, text = "Submit", command = partial(self.make_request, username_entry), height=6, width=40, bg = "#ffcc03")
-        back_button = tk.Button(self.request_frame, text = "Back", command = partial(self.home_screen, self.request_frame), height=6, width = 40, bg = "#ffcc03")
+        back_button = tk.Button(self.request_frame, text = "Back", command = partial(self.choose_opp_screen, self.request_frame), height=6, width = 40, bg = "#ffcc03")
         request_label.pack(pady=10)
         username_entry.pack(pady=10)
         submit_button.pack(pady=10)
@@ -584,6 +614,15 @@ class Game:
         cancel_button.pack(pady=10)
 
         self.response_frame.pack()
+
+    def single_battle(self, prev_screen = None):
+        print("Starting Single-player battle")
+        winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
+
+        if prev_screen:
+            prev_screen.pack_forget()
+
+        self.home_screen()
 
     def set_pokemon(self, pokemon_name):
         '''
@@ -762,8 +801,6 @@ class Game:
     def exit_game(self):
         print("Exiting game")
         winsound.PlaySound('click.wav', winsound.SND_FILENAME)
-        self.user.gamestats_df.to_csv(self.user.path + "/gamestats.csv", index = False, quoting=csv.QUOTE_NONNUMERIC)
-        self.user.team_df.to_csv(self.user.path + "/team.csv", index=False, quoting=csv.QUOTE_NONNUMERIC)
         self.window.destroy()
 
 
