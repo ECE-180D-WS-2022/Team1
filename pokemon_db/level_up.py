@@ -9,7 +9,7 @@ import pandas as pd
 import string
 
 def import_learnset():
-    df = pd.read_csv('data/final_learnset.csv')
+    df = pd.read_csv('../data/final_learnset.csv')
     #array = [pokemon: 898][level: 0->100]
 
     #NOTE: POKEMON IDS ARE NOT ZERO INDEXED, BUT ARRAY IS ZERO-INDEXED
@@ -18,7 +18,7 @@ def import_learnset():
     #find list of moves to omit
     #remove status moves and moves w/ fancy damage calculations
     omit = []
-    moves = pd.read_csv('data/moves.csv')
+    moves = pd.read_csv('../data/moves.csv')
     for x in range(826):
         data = moves.iloc[x]
         if ((pd.isnull(data.iloc[3])) or data.iloc[6] == 1):
@@ -48,6 +48,9 @@ def import_learnset():
                 #array[row][col] = 0
                 #poo = 0
 '''
+
+def initialize_start_moves():
+    return
 
 def main():
     print("test")
