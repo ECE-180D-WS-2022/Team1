@@ -186,11 +186,11 @@ class Battle:
         self.client.subscribe("ece180d/pokEEmon/" + self.id, qos=1)
         print("Subscribed to " + "ece180d/pokEEmon/" + self.id)
 
-        self.gesture_frame = tk.Frame(self.window)
-        gesture_label = tk.Label(self.gesture_frame, text="Do a {} ".format(movegesture[self.movename]))
-        back_button = tk.Button(self.gesture_frame, text="Back", command = partial(self.move_screen, self.gesture_frame))
+        self.gesture_frame = tk.Frame(self.window, bg = "#34cfeb")
+        gesture_label = tk.Label(self.gesture_frame, text="Do a {} ".format(movegesture[self.movename]), font=("Arial", 25), bg= "#34cfeb")
+        back_button = tk.Button(self.gesture_frame, text="Back", command = partial(self.move_screen, self.gesture_frame), height = 4, width = 20, bg = "#ffcc03")
         gesture_label.pack()
-        back_button.pack()
+        back_button.pack(pady = 10)
 
         self.gesture_frame.pack()
 
@@ -211,16 +211,16 @@ class Battle:
         print("Subscribed to " + "ece180d/pokEEmon/" + self.user.username + "/move")
         print("Subscribed to " + "ece180d/pokEEmon/" + self.user.username + "/change")
 
-        self.wait_frame = tk.Frame(self.window)
-        wait_label = tk.Label(self.wait_frame, text="Waiting for {} to move".format(self.opp_user.username))
+        self.wait_frame = tk.Frame(self.window, bg = "#34cfeb")
+        wait_label = tk.Label(self.wait_frame, text="Waiting for {} to move".format(self.opp_user.username),bg = "#34cfeb", font=("Arial", 30))
         user_pokemon_name = self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("name")]
         userteam_string = self.user.team_df.loc[:, ["name", "hp"]].to_string(index=False)
         userteam_string = userteam_string.replace(user_pokemon_name, "**" + user_pokemon_name)
-        userteam_label = tk.Label(self.wait_frame, text="\nYour team: \n{}\n".format(userteam_string))
+        userteam_label = tk.Label(self.wait_frame, text="\nYour team: \n{}\n".format(userteam_string), bg = "#34cfeb", font=("Arial", 30))
         opp_pokemon_name = self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("name")]
         oppteam_string = self.opp_user.team_df.loc[:, ["name", "hp"]].to_string(index=False)
         oppteam_string = oppteam_string.replace(opp_pokemon_name, "**" + opp_pokemon_name)
-        oppteam_label = tk.Label(self.wait_frame, text="\nOpponent team: \n{}\n".format(oppteam_string))
+        oppteam_label = tk.Label(self.wait_frame, text="\nOpponent team: \n{}\n".format(oppteam_string), bg = "#34cfeb", font=("Arial", 30))
         wait_label.pack()
         userteam_label.pack()
         oppteam_label.pack()
@@ -242,36 +242,42 @@ class Battle:
         print("Unsubscribed to " + "ece180d/pokEEmon/" + self.user.username + "/move")
         print("Unsubscribed to " + "ece180d/pokEEmon/" + self.user.username + "/change")
 
-        self.move_frame = tk.Frame(self.window)
+        self.move_frame = tk.Frame(self.window, bg = "#34cfeb")
 
         if move_update:
-            update_label = tk.Label(self.move_frame, text=move_update)
+            update_label = tk.Label(self.move_frame, text=move_update, bg = "#34cfeb", font=("Arial", 30))
             update_label.pack()
 
         if self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("hp")] > 0:
-            move_label = tk.Label(self.move_frame, text="Choose your move")
-            move1_button = tk.Button(self.move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move1"], command = partial(self.gesture_screen, "move1"))
-            move2_button = tk.Button(self.move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move2"], command = partial(self.gesture_screen, "move2"))
-            move3_button = tk.Button(self.move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move3"], command = partial(self.gesture_screen, "move3"))
-            move4_button = tk.Button(self.move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move4"], command = partial(self.gesture_screen, "move4"))
+            # move_label = tk.Label(self.move_frame, text="Choose your move", bg = "#34cfeb", font=("Arial", 30))
+            img = ImageTk.PhotoImage(Image.open("choose_move_img.png"))
+            move_label = tk.Label(self.move_frame, image = img, bg = "#34cfeb")
+            move_label.photo = img
+            move1_button = tk.Button(self.move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move1"], command = partial(self.gesture_screen, "move1"), height = 4, width = 50, bg="#ffcc03")
+            move2_button = tk.Button(self.move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move2"], command = partial(self.gesture_screen, "move2"), height = 4, width = 50, bg="#ffcc03")
+            move3_button = tk.Button(self.move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move3"], command = partial(self.gesture_screen, "move3"), height = 4, width = 50, bg="#ffcc03")
+            move4_button = tk.Button(self.move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move4"], command = partial(self.gesture_screen, "move4"), height = 4, width = 50, bg="#ffcc03")
             move_label.pack()
-            move1_button.pack()
-            move2_button.pack()
-            move3_button.pack()
-            move4_button.pack()
+            move1_button.pack(pady=10)
+            move2_button.pack(pady=10)
+            move3_button.pack(pady=10)
+            move4_button.pack(pady=5)
         else:
-            change_label = tk.Label(self.move_frame, text="Change your pokemon")
+            # change_label = tk.Label(self.move_frame, text="Change your pokemon", bg = "#34cfeb", font=("Arial", 30))
+            img_2 = ImageTk.PhotoImage(Image.open("change_pokemon.png"))
+            change_label = tk.Label(self.move_frame, image = img_2, bg = "#34cfeb")
+            change_label.photo = img
             change_label.pack()
 
         user_pokemon_name = self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("name")]
         userteam_string = self.user.team_df.loc[:, ["name", "hp"]].to_string(index=False)
         userteam_string = userteam_string.replace(user_pokemon_name, "**" + user_pokemon_name)
-        userteam_label = tk.Label(self.move_frame, text="\nYour team: \n{}\n".format(userteam_string))
+        userteam_label = tk.Label(self.move_frame, text="\nYour team: \n{}\n".format(userteam_string), bg = "#34cfeb", font=("Arial", 30))
         opp_pokemon_name = self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("name")]
         oppteam_string = self.opp_user.team_df.loc[:, ["name", "hp"]].to_string(index=False)
         oppteam_string = oppteam_string.replace(opp_pokemon_name, "**" + opp_pokemon_name)
-        oppteam_label = tk.Label(self.move_frame, text="\nOpponent team: \n{}\n".format(oppteam_string))
-        change_button = tk.Button(self.move_frame, text="Change pokEEmon", command = self.choose_screen)
+        oppteam_label = tk.Label(self.move_frame, text="\nOpponent team: \n{}\n".format(oppteam_string), bg = "#34cfeb", font=("Arial", 30))
+        change_button = tk.Button(self.move_frame, text="Change pokEEmon", command = self.choose_screen, height = 4, width = 50, bg="#ffcc03")
         userteam_label.pack()
         oppteam_label.pack()
         change_button.pack()
@@ -297,14 +303,17 @@ class Battle:
             self.stop_listening(wait_for_stop=False)
             self.stop_listening = None
 
-        self.choose_frame = tk.Frame(self.window)
-        choose_label = tk.Label(self.choose_frame, text="Choose your pokemon")
+        self.choose_frame = tk.Frame(self.window, bg = "#34cfeb")
+        img = ImageTk.PhotoImage(Image.open("choose_pokemon_img.png"))
+        choose_label = tk.Label(self.choose_frame, image = img, bg = "#34cfeb")
+        choose_label.photo = img
+        # choose_label = tk.Label(self.choose_frame, text="Choose your pokemon", bg = "#34cfeb")
         choose_label.pack()
         user_pokemon = self.user.team_df.loc[:,["name","hp"]]
         for row in user_pokemon.itertuples():
             if row.hp > 0:
-                pokemon_button = tk.Button(self.choose_frame, text=row.name, command = partial(self.sel_pokemon, row.Index))
-                pokemon_button.pack()
+                pokemon_button = tk.Button(self.choose_frame, text=row.name, command = partial(self.sel_pokemon, row.Index), height=6, width=40, bg = "#ffcc03")
+                pokemon_button.pack(pady=10)
         self.choose_frame.pack()
 
 class User:
@@ -438,7 +447,8 @@ class Game:
 
         if not self.window:
             self.window = tk.Tk()
-            # self.window.attributes('-fullscreen',True)
+            self.window.configure(bg="#34cfeb")
+            self.window.attributes('-fullscreen',True)
         else:
             winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
         if not self.home_frame:
@@ -451,19 +461,10 @@ class Game:
             train_button = tk.Button(self.home_frame, text = "Train", command = partial(self.train_screen_begin, self.home_frame), height = 6, width = 70, bg = "#ffcc03")
             exit_button = tk.Button(self.home_frame, text = "Exit", command = self.exit_game, height = 6, width = 70, bg="#ffcc03")
 
-            # button_image = ImageTk.PhotoImage(file="home_button.png")
-            # battle_button.config(image=button_image)
-            # battle_button.image = button_image
-            # train_button.config(image=button_image)
-            # train_button.image = button_image
-            # exit_button.config(image=button_image)
-            # exit_button.image = button_image
-
-            photo_label.pack()
-            exit_button.pack(side=tk.BOTTOM, pady=10)
-            battle_button.pack(side=tk.BOTTOM, pady=10)
-            train_button.pack(side=tk.BOTTOM, pady=10)
-
+            photo_label.pack(pady= 30)
+            battle_button.pack(pady=10)
+            train_button.pack(pady=10)
+            exit_button.pack(pady=10)
         self.home_frame.pack(fill='both', expand=True)
 
     def receive_screen(self, opp_username):
@@ -479,14 +480,19 @@ class Game:
         print("Unsubscribed from " + "ece180d/pokEEmon/" + self.user.username + "/request")
         print("Subscribed to " + "ece180d/pokEEmon/" + self.user.username + "/cancel")
 
+        self.receive_frame = tk.Frame(self.window, bg = "#34cfeb")
 
-        self.receive_frame = tk.Frame(self.window)
-        receive_label = tk.Label(self.receive_frame, text="Battle request from " + opp_username)
-        accept_button = tk.Button(self.receive_frame, text = "Accept", command = partial(self.accept_request, opp_username))
-        decline_button = tk.Button(self.receive_frame, text = "Decline", command = partial(self.decline_request, opp_username))
-        receive_label.pack()
-        accept_button.pack()
-        decline_button.pack()
+        img = ImageTk.PhotoImage(Image.open("battle_img.png"))
+        receive_photo_label = tk.Label(self.receive_frame, image = img, bg = "#34cfeb")
+        receive_photo_label.photo = img
+
+        receive_label = tk.Label(self.receive_frame, text=opp_username, font=("Arial", 50), bg = "#34cfeb")
+        accept_button = tk.Button(self.receive_frame, text = "Accept", command = partial(self.accept_request, opp_username), height = 6, width = 70, bg="#ffcc03")
+        decline_button = tk.Button(self.receive_frame, text = "Decline", command = partial(self.decline_request, opp_username), height = 6, width = 70, bg="#ffcc03")
+        receive_photo_label.pack(pady=10)
+        receive_label.pack(pady=15)
+        accept_button.pack(pady=10)
+        decline_button.pack(pady=10)
 
         self.receive_frame.pack()
 
@@ -504,14 +510,13 @@ class Game:
         print("Unsubscribed from " + "ece180d/pokEEmon/" + self.user.username + "/request")
         print("Unsubscribed from " + "ece180d/pokEEmon/" + self.user.username + "/response")
 
-
         self.request_frame = tk.Frame(self.window, bg = "#34cfeb")
         request_img = ImageTk.PhotoImage(Image.open("request_img.png"))
         request_label = tk.Label(self.request_frame, image=request_img, bg = "#34cfeb")
         request_label.photo = request_img
         username_entry = tk.Entry(self.request_frame, font=("default", 16))
         submit_button = tk.Button(self.request_frame, text = "Submit", command = partial(self.make_request, username_entry), height=6, width=40, bg = "#ffcc03")
-        back_button = tk.Button(self.request_frame, text = "Back", command = partial(self.home_screen, self.request_frame), height = 6, width = 40, bg = "#ffcc03")
+        back_button = tk.Button(self.request_frame, text = "Back", command = partial(self.home_screen, self.request_frame), height=6, width = 40, bg = "#ffcc03")
         request_label.pack(pady=10)
         username_entry.pack(pady=10)
         submit_button.pack(pady=10)
@@ -532,11 +537,15 @@ class Game:
         self.client.subscribe("ece180d/pokEEmon/" + self.user.username + "/response")
         print("Subscribed to " + "ece180d/pokEEmon/" + self.user.username + "/response")
 
-        self.response_frame = tk.Frame(self.window)
-        request_label = tk.Label(self.response_frame, text="Waiting for " + opp_username)
-        cancel_button = tk.Button(self.response_frame, text = "Cancel", command = partial(self.cancel_request, opp_username))
-        request_label.pack()
-        cancel_button.pack()
+        self.response_frame = tk.Frame(self.window, bg = "#34cfeb")
+        waiting_img = ImageTk.PhotoImage(Image.open("waiting_img.png"))
+        waiting_label = tk.Label(self.response_frame, image=waiting_img, bg = "#34cfeb")
+        waiting_label.photo = waiting_img
+        request_label = tk.Label(self.response_frame, text=opp_username, font=("Arial", 25), bg= "#34cfeb")
+        cancel_button = tk.Button(self.response_frame, text = "Cancel", command = partial(self.cancel_request, opp_username), height = 6, width = 70, bg = "#ffcc03")
+        waiting_label.pack(pady=10)
+        request_label.pack(pady=10)
+        cancel_button.pack(pady=10)
 
         self.response_frame.pack()
 
@@ -608,6 +617,7 @@ class Game:
         label = tk.Label(self.train_frame)
         #create label for pose reference image
         ref_img_label = tk.Label(self.train_frame)
+        # ref_img_label = tk.Label(self.train_frame, bg="#34cfeb")
 
         pose_video = mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.5, model_complexity=1)
 
