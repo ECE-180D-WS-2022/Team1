@@ -25,6 +25,41 @@ import math
 
 movegesture = {"Thunderbolt" : "slash", "Tackle" : "block", "Ice" : "whip", "Flamethrower" : "scratch"}
 
+
+def level_up (pk_df, xp_amt):
+    #1000 xp to level up
+    current_xp =  pk_df["xp_accumulated"]
+    current_xp += xp_amt
+    lvl = pk_df["level"]
+    hp = pk_df["hp"]
+    atk = pk_df["attack"]
+    defs = pk_df["defense"]
+    spatk = pk_df["special_attack"]
+    spdef = pk_df["special_defense"]
+    speed = pk_df["speed"]
+    while (int(current_xp) > (int(lvl) * 1000)):
+        hp = int(((((2*hp) + random.randrange(28,31) + 20.25) * lvl)/100) + lvl + 10)
+        atk = int(((((2*atk) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
+        defs = int(((((2*defs) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
+        spatk = int(((((2*spatk) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
+        spdef = int(((((2*spdef) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
+        speed = int(((((2*speed) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
+        lvl += 1
+
+    ans = pk_df.copy()
+    ans["xp_accumulated"] = current_xp
+    ans["level"] = lvl
+    ans["hp"] = hp
+    ans["attack"] = atk
+    ans["defense"] = defs
+    ans["special_attack"] = spatk
+    ans["special_defense"] = spdef
+    ans["speed"] = speed
+
+    return ans
+
+
+
 class Battle:
     def __init__(self, user, battle_id, opp_user, window, client, home, id):
         self.user = copy.deepcopy(user)
@@ -121,6 +156,25 @@ class Battle:
         self.client.publish("ece180d/pokEEmon/" + self.opp_user.username + "/move", move_msg)
         if self.opp_user.team_df[self.opp_user.team_df["hp"] > 0].empty:
             print("You won!")
+
+            self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "xp_accumulated"] += 20
+            #1000 xp to level up
+            current_xp =  self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "xp_accumulated"]
+            lvl = self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "level"]
+            hp = self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "hp"]
+            atk = self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "atk"]
+            spatk = self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "special_attack"]
+            spdef = self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "special_defense"]
+            speed = self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "speed"]
+            if (current_xp > (lvl * 1000)):
+                #TODO: implement leveling
+                self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "level"] += 1
+                self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "hp"] = int(((((2*hp) + random.randrange(28,31) + 20.25) * lvl)/100) + lvl + 10)
+                self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "atk"] = int(((((2*atk) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
+                self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "special_attack"] = int(((((2*spatk) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
+                self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "special_defense"] = int(((((2*spdef) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
+                self.user.team_df.loc[self.user.team_df.name == self.working_pokemon, "speed"] = int(((((2*speed) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
+
             self.home(self.gesture_frame)
         else:
             self.wait_screen(self.gesture_frame)
