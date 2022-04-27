@@ -525,10 +525,12 @@ class Game:
 
         if not self.choose_opp_frame:
             self.choose_opp_frame = tk.Frame(self.window, bg = "#34cfeb")
+            mode_label = tk.Label(self.choose_opp_frame, text = "Choose Battle Mode")
             single_button = tk.Button(self.choose_opp_frame, text = "Single-player", command = partial(self.single_battle, self.choose_opp_frame), height=6, width=40, bg = "#ffcc03")
             multi_button = tk.Button(self.choose_opp_frame, text = "Multi-player", command = partial(self.request_screen, self.choose_opp_frame), height=6, width=40, bg = "#ffcc03")
             back_button = tk.Button(self.choose_opp_frame, text = "Back", command = partial(self.home_screen, self.choose_opp_frame), height=6, width = 40, bg = "#ffcc03")
 
+            mode_label.pack(pady=10)
             single_button.pack(pady=10)
             multi_button.pack(pady=10)
             back_button.pack(pady=10)
