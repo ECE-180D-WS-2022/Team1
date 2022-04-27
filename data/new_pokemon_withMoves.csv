@@ -1,4 +1,4 @@
-"id","name","xp_reward","type","hp","atk","def","spatk","spdef","spd","move1","move2","move3","move4","xp_accumulated","level"
+"id","name","xp_reward","type","hp","attack","defense","special_attack","special_defense","speed","move1","move2","move3","move4","xp_accumulated","level"
 1,"bulbasaur",64,"grass",45.0,49.0,49.0,65.0,65.0,45.0,"tackle","","","",0,0
 2,"ivysaur",142,"grass",60.0,62.0,63.0,80.0,80.0,60.0,"tackle","","","",0,0
 3,"venusaur",263,"grass",80.0,82.0,83.0,100.0,100.0,80.0,"vine-whip","tackle","petal-dance","",0,0
