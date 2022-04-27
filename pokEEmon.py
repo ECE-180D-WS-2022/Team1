@@ -437,12 +437,13 @@ class User:
         if not os.path.isdir(self.path):
             os.mkdir(self.path, 0o777)
             shutil.copy2("data/users/default/gamestats.csv", self.path)
-            shutil.copy2("data/users/default/team.csv", self.path)
-            all_pokemon_df = pd.read_csv("data/pokemon.csv")
+            basepk_df = pd.read_csv("data/pokemon.csv")
+            team_df = basepk_df.sample(n = 3)
+            team_df.reset_index(drop=True, inplace=True)
+            for i in range(team_df.shape[0]):
+                team_df.loc[i] = level_up(team_df.loc[i], 0)
+            team_df.to_csv(self.path + "/team.csv", index=False, quoting=csv.QUOTE_NONNUMERIC)
             gamestats_df = pd.read_csv(self.path + "/gamestats.csv")
-            team_df = pd.read_csv(self.path + "/team.csv")
-            team_df = team_df.append(all_pokemon_df.iloc[[random.randrange(0,799)]], ignore_index=True)
-            team_df = team_df.append(all_pokemon_df.iloc[[random.randrange(0,799)]], ignore_index=True)
         else:
             gamestats_df = pd.read_csv(self.path + "/gamestats.csv")
             team_df = pd.read_csv(self.path + "/team.csv")
