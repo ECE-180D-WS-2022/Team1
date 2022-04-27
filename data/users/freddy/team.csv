@@ -1,0 +1,4 @@
+"name","type","hp","attack","defense","special_attack","special_defense","speed","xp_reward","move1","move2","move3","move4","xp_accumulated","level"
+"Diglett","Ground",11,6,6,6,6,7,82,"Thunderbolt","Tackle","Water-gun","Flamethrower",328,1
+"Marshtomp","Water",12,7,6,6,6,6,82,"Thunderbolt","Tackle","Water-gun","Flamethrower",328,1
+"Anorith","Rock",12,7,6,6,6,6,82,"Thunderbolt","Tackle","Water-gun","Flamethrower",328,1
