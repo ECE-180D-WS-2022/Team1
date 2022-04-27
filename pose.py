@@ -210,6 +210,3 @@ def classifyPose(landmarks, output_image, mp_pose, display=False):
 
         #Return the output image and the classified label.
         return output_image, label
-
-
-
