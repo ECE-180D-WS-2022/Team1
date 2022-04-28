@@ -233,10 +233,9 @@ class Battle:
 
         self.movename = self.user.team_df.iloc[self.curr_pokemon][move]
 
-        if not self.singleplayer:
-            self.client.on_message = self.rcv_gesture_mqtt
-            self.client.subscribe("ece180d/pokEEmon/" + self.id, qos=1)
-            print("Subscribed to " + "ece180d/pokEEmon/" + self.id)
+        self.client.on_message = self.rcv_gesture_mqtt
+        self.client.subscribe("ece180d/pokEEmon/" + self.id, qos=1)
+        print("Subscribed to " + "ece180d/pokEEmon/" + self.id)
 
         self.gesture_frame = tk.Frame(self.window, bg = "#34cfeb")
         gesture_label = tk.Label(self.gesture_frame, text="Do a {} ".format(movegesture[self.movename]), font=("Arial", 25), bg= "#34cfeb")
@@ -258,12 +257,13 @@ class Battle:
             self.wait_frame.destroy()
 
 
+        self.client.unsubscribe("ece180d/pokEEmon/" + self.id)
+        print("Unsubscribed to " + "ece180d/pokEEmon/" + self.id)
+
         if not self.singleplayer:
             self.client.on_message = self.rcv_battle_mqtt
-            self.client.unsubscribe("ece180d/pokEEmon/" + self.id)
             self.client.subscribe("ece180d/pokEEmon/" + self.user.username + "/move", qos=1)
             self.client.subscribe("ece180d/pokEEmon/" + self.user.username + "/change", qos=1)
-            self.client.unsubscribe("ece180d/pokEEmon/" + self.id)
             print("Subscribed to " + "ece180d/pokEEmon/" + self.user.username + "/move")
             print("Subscribed to " + "ece180d/pokEEmon/" + self.user.username + "/change")
 
@@ -363,11 +363,13 @@ class Battle:
         if self.move_frame:
             self.move_frame.destroy()
 
+
+        self.client.unsubscribe("ece180d/pokEEmon/" + self.id)
+        print("Unsubscribed to " + "ece180d/pokEEmon/" + self.id)
+
         if not self.singleplayer:
-            self.client.unsubscribe("ece180d/pokEEmon/" + self.id)
             self.client.unsubscribe("ece180d/pokEEmon/" + self.user.username + "/move")
             self.client.unsubscribe("ece180d/pokEEmon/" + self.user.username + "/change")
-            print("Unsubscribed to " + "ece180d/pokEEmon/" + self.id)
             print("Unsubscribed to " + "ece180d/pokEEmon/" + self.user.username + "/move")
             print("Unsubscribed to " + "ece180d/pokEEmon/" + self.user.username + "/change")
 
@@ -734,7 +736,7 @@ class Game:
         print(self.opp_user.team_df)
 
 
-        b = Battle(self.user, None, self.opp_user, self.window, None, self.home_screen, self.id, True)
+        b = Battle(self.user, None, self.opp_user, self.window, self.client, self.home_screen, self.id, True)
         if random.randint(0, 1):
             b.move_screen()
         else:
