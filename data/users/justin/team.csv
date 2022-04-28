@@ -1,4 +1,4 @@
 "name","type","hp","attack","defense","special_attack","special_defense","speed","xp_reward","move1","move2","move3","move4","xp_accumulated","level"
-"Zoroark","Dark",12,7,6,7,6,7,82,"Thunderbolt","Tackle","Water-gun","Flamethrower",0,1
-"Cresselia","Psychic",13,6,7,7,8,7,82,"Thunderbolt","Tackle","Water-gun","Flamethrower",0,1
-"Onix","Rock",12,6,8,6,6,6,82,"Thunderbolt","Tackle","Water-gun","Flamethrower",0,1
+"Zoroark","Dark",18,12,10,13,10,12,82,"Thunderbolt","Tackle","Water-gun","Flamethrower",2540,3
+"Cresselia","Psychic",21,10,13,10,14,11,82,"Thunderbolt","Tackle","Water-gun","Flamethrower",2540,3
+"Onix","Rock",16,9,16,8,9,10,82,"Thunderbolt","Tackle","Water-gun","Flamethrower",2540,3
