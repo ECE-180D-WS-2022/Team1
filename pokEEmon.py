@@ -123,7 +123,8 @@ class Battle:
             words = recognizer.recognize_google(audio)
             print("Heard: " + words)
             for move in ["move1", "move2", "move3", "move4"]:
-                if self.user.team_df.iloc[self.curr_pokemon][move].lower() in words.lower():
+                movename = self.user.team_df.iloc[self.curr_pokemon][move]
+                if movename.lower().replace("-", " ") in words.lower() or movename.lower().replace("-", "") in words.lower():
                     self.gesture_screen(move)
                     return
 
@@ -247,7 +248,7 @@ class Battle:
 
 
         # TODO: remove this when using gestures
-        #self.window.after(1000, self.do_move)
+        self.window.after(1000, self.do_move)
 
     def wait_screen(self, prev_frame = None, move_update = None):
         print("Waiting for opponent move")
