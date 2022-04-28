@@ -301,9 +301,15 @@ class Battle:
 
         gameover_frame = tk.Frame(self.window, bg = "#34cfeb")
         if won:
-            gameover_label = tk.Label(gameover_frame, text="You won!")
+            # gameover_label = tk.Label(gameover_frame, text="You won!")
+            won_img = ImageTk.PhotoImage(Image.open("won_img.png"))
+            gameover_label = tk.Label(gameover_frame, image=won_img, bg = "#34cfeb")
+            gameover_label.photo = won_img
         else:
-            gameover_label = tk.Label(gameover_frame, text="You lost")
+            # gameover_label = tk.Label(gameover_frame, text="You lost")
+            lost_img = ImageTk.PhotoImage(Image.open("lost_img.png"))
+            gameover_label = tk.Label(gameover_frame, image=lost_img, bg = "#34cfeb")
+            gameover_label.photo = lost_img
 
         home_button = tk.Button(gameover_frame, text="Home", command = partial(self.home, gameover_frame), height = 6, width = 70, bg="#ffcc03")
 
