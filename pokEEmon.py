@@ -248,7 +248,7 @@ class Battle:
 
 
         # TODO: remove this when using gestures
-        self.window.after(1000, self.do_move)
+        #self.window.after(1000, self.do_move)
 
     def wait_screen(self, prev_frame = None, move_update = None):
         print("Waiting for opponent move")
@@ -422,7 +422,7 @@ class Battle:
         change_button.pack(pady = 30)
         userteam_label.pack(side=tk.LEFT, padx = 10)
         oppteam_label.pack(side=tk.LEFT, padx = 10)
-        
+
 
         self.move_frame.pack()
 
