@@ -21,6 +21,7 @@ import pose as ps
 import random
 import winsound
 import math
+from tkvideo import tkvideo
 #import moves_new as mv
 
 movegesture = {"Thunderbolt" : "slash", "Tackle" : "block", "Water-gun" : "whip", "Flamethrower" : "scratch"}
@@ -597,13 +598,41 @@ class Game:
             photo_label.photo = img
             battle_button = tk.Button(self.home_frame, text = "Battle", command = partial(self.choose_opp_screen, self.home_frame), height = 6, width = 70, bg="#ffcc03")
             train_button = tk.Button(self.home_frame, text = "Train", command = partial(self.train_screen_begin, self.home_frame), height = 6, width = 70, bg = "#ffcc03")
+            tutorial_button = tk.Button(self.home_frame, text = "Tutorial", command = partial(self.tutorial_screen, self.home_frame), height = 6, width = 70, bg="#ffcc03")
             exit_button = tk.Button(self.home_frame, text = "Exit", command = self.exit_game, height = 6, width = 70, bg="#ffcc03")
 
             photo_label.pack(pady= 30)
             battle_button.pack(pady=10)
             train_button.pack(pady=10)
+            tutorial_button.pack(pady=10)
             exit_button.pack(pady=10)
         self.home_frame.pack(fill='both', expand=True)
+
+    def tutorial_screen(self, prev_screen = None):
+        print("Tutorial screen")
+        winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
+
+        if prev_screen:
+            prev_screen.pack_forget()
+
+        self.client.unsubscribe("ece180d/pokEEmon/" + self.user.username + "/request")
+        print("Unsubscribed from " + "ece180d/pokEEmon/" + self.user.username + "/request")
+
+        tutorial_frame = tk.Frame(self.window, bg = "#34cfeb")
+        mode_img =  ImageTk.PhotoImage(Image.open("choose_battle_mode_img.png"))
+        mode_label = tk.Label(tutorial_frame, image=mode_img, bg = "#34cfeb")
+        mode_label.photo = mode_img
+
+        l = tk.Label(tutorial_frame)
+
+        back_button = tk.Button(tutorial_frame, text = "Back", command = partial(self.home_screen, tutorial_frame), height=6, width = 40, bg = "#ffcc03")
+
+        mode_label.pack(pady=10)
+        l.pack()
+        back_button.pack(pady=10)
+        tutorial_frame.pack()
+        player = tkvideo("tutorial.mp4", l, loop = 1, size = (1280,720))
+        player.play()
 
     def choose_opp_screen(self, prev_screen = None):
         print("Choose opp screen")
