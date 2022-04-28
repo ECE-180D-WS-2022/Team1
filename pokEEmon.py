@@ -21,7 +21,6 @@ import pose as ps
 import random
 import winsound
 import math
-from tkvideo import tkvideo
 #import moves_new as mv
 
 movegesture = {"Thunderbolt" : "slash", "Tackle" : "block", "Water-gun" : "whip", "Flamethrower" : "scratch"}
@@ -623,16 +622,13 @@ class Game:
         mode_label = tk.Label(tutorial_frame, image=mode_img, bg = "#34cfeb")
         mode_label.photo = mode_img
 
-        l = tk.Label(tutorial_frame)
-
         back_button = tk.Button(tutorial_frame, text = "Back", command = partial(self.home_screen, tutorial_frame), height=6, width = 40, bg = "#ffcc03")
 
         mode_label.pack(pady=10)
-        l.pack()
         back_button.pack(pady=10)
         tutorial_frame.pack()
-        player = tkvideo("tutorial.mp4", l, loop = 1, size = (1280,720))
-        player.play()
+
+        os.startfile("tutorial.mp4")
 
     def choose_opp_screen(self, prev_screen = None):
         print("Choose opp screen")
