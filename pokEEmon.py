@@ -618,7 +618,7 @@ class Game:
         print("Unsubscribed from " + "ece180d/pokEEmon/" + self.user.username + "/request")
 
         tutorial_frame = tk.Frame(self.window, bg = "#34cfeb")
-        mode_img =  ImageTk.PhotoImage(Image.open("choose_battle_mode_img.png"))
+        mode_img =  ImageTk.PhotoImage(Image.open("tutorial_img.png"))
         mode_label = tk.Label(tutorial_frame, image=mode_img, bg = "#34cfeb")
         mode_label.photo = mode_img
 
