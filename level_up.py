@@ -9,6 +9,7 @@ import pandas as pd
 import string
 
 def import_learnset():
+    print("importing learnset")
     df = pd.read_csv('data/final_learnset.csv')
     #array = [pokemon: 898][level: 0->100]
 
@@ -37,7 +38,7 @@ def import_learnset():
         #only add if move is not in the omit list
         if (not np.isin(data.iloc[1], omit) ):
             array[data.iloc[0] - 1][data.iloc[2]].append(data.iloc[1])
-
+    print("finished importing learnset")
     return array
 
 '''

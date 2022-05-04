@@ -21,10 +21,40 @@ import pose as ps
 import random
 import winsound
 import math
+from level_up import import_learnset
 #import moves_new as mv
 
 movegesture = {"Thunderbolt" : "slash", "Tackle" : "block", "Water-gun" : "whip", "Flamethrower" : "scratch"}
+learnset = import_learnset()
 
+def learn_moves(pk_df, lvl):
+
+    ans = pk_df.copy()
+
+    #if level learnset is not empty
+    if not learnset[ans.loc["id"] - 1][lvl] :
+        #find name of move to be learned
+        move_learned = pd.read_csv("data/moves.csv")
+        move_learned = move_learned.loc[learnset[ans.loc["id"] - 1][lvl][0] == moves["id"]]
+
+        #check if there are empty move slots
+        if pd.isnull(ans.loc["move2"]):
+            ans.at["move2"] = move_learned.at["identifier"]
+            return ans
+
+        if pd.isnull(ans.loc["move3"]):
+            ans.at["move3"] = move_learned.at["identifier"]
+            return ans
+
+        if pd.isnull(ans.loc["move4"]):
+            ans.at["move4"] = move_learned.at["identifier"]
+            return ans
+
+        #if no empty move slots, just randomly replace one
+        index = randrange(4) + 10
+        ans.iat[index] = move_learned.at["identifier"]
+
+    return ans
 
 def level_up (pk_df, xp_amt):
     #1000 xp to level up
@@ -47,6 +77,8 @@ def level_up (pk_df, xp_amt):
         ans["special_attack"] = int(((((2*basepk_df["special_attack"]) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
         ans["special_defense"] = int(((((2*basepk_df["special_defense"]) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
         ans["speed"] = int(((((2*basepk_df["speed"]) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
+
+        ans = learn_moves(ans, lvl)
 
     return ans
 
