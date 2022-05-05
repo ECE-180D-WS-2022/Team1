@@ -308,7 +308,6 @@ class Battle:
         else:
             winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
 
-        # wait_label = tk.Label(self.wait_frame, text="Waiting for opponent move",bg = "#34cfeb", font=("Arial", 30))
         wait_img =  ImageTk.PhotoImage(Image.open("wait_opponent_move_img.png"))
         wait_label = tk.Label(self.wait_frame, image=wait_img, bg = "#34cfeb")
         wait_label.photo = wait_img
@@ -334,12 +333,10 @@ class Battle:
 
         gameover_frame = tk.Frame(self.window, bg = "#34cfeb")
         if won:
-            # gameover_label = tk.Label(gameover_frame, text="You won!")
             won_img = ImageTk.PhotoImage(Image.open("won_img.png"))
             gameover_label = tk.Label(gameover_frame, image=won_img, bg = "#34cfeb")
             gameover_label.photo = won_img
         else:
-            # gameover_label = tk.Label(gameover_frame, text="You lost")
             lost_img = ImageTk.PhotoImage(Image.open("lost_img.png"))
             gameover_label = tk.Label(gameover_frame, image=lost_img, bg = "#34cfeb")
             gameover_label.photo = lost_img
@@ -416,7 +413,6 @@ class Battle:
             winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
 
         if self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("curr_hp")] > 0:
-            # move_label = tk.Label(self.move_frame, text="Choose your move", bg = "#34cfeb", font=("Arial", 30))
             img = ImageTk.PhotoImage(Image.open("choose_move_img.png"))
             move_label = tk.Label(self.move_frame, image = img, bg = "#34cfeb")
             move_label.photo = img
@@ -439,7 +435,6 @@ class Battle:
 
             self.stop_listening = self.rec.listen_in_background(self.mic, self.voice_callback, 2)
         else:
-            # change_label = tk.Label(self.move_frame, text="Change your pokemon", bg = "#34cfeb", font=("Arial", 30))
             img_2 = ImageTk.PhotoImage(Image.open("change_pokemon.png"))
             change_label = tk.Label(self.move_frame, image = img_2, bg = "#34cfeb")
             change_label.photo = img_2
@@ -476,7 +471,6 @@ class Battle:
         img = ImageTk.PhotoImage(Image.open("choose_pokemon_img.png"))
         choose_label = tk.Label(self.choose_frame, image = img, bg = "#34cfeb")
         choose_label.photo = img
-        # choose_label = tk.Label(self.choose_frame, text="Choose your pokemon", bg = "#34cfeb")
         choose_label.pack()
         user_pokemon = self.user.team_df.loc[:,["name","curr_hp"]]
         for row in user_pokemon.itertuples():
@@ -861,7 +855,6 @@ class Game:
         #Initializing mediapipe pose class.
         mp_pose = mp.solutions.pose
         #Setting up the Pose function.
-        #pose = mp_pose.Pose(static_image_mode=True, min_detection_confidence=0.3, model_complexity=2)
         #Initializing mediapipe drawing class, useful for annotation.
         mp_drawing = mp.solutions.drawing_utils
 
@@ -869,7 +862,6 @@ class Game:
         label = tk.Label(self.train_frame)
         #create label for pose reference image
         ref_img_label = tk.Label(self.train_frame)
-        # ref_img_label = tk.Label(self.train_frame, bg="#34cfeb")
 
         pose_video = mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.5, model_complexity=1)
 
