@@ -812,7 +812,7 @@ class Game:
     def train_screen_begin(self, prev_screen = None, camera = None):
         winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
         '''
-        Giving choices for pokemon to train
+        Creates the screen that gives choices for pokemon to train
         '''
         print("Training screen Beginning")
         if prev_screen:
@@ -835,7 +835,8 @@ class Game:
     def train_screen(self, working_pokemon):
         winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
         '''
-        Training that starts after pokemon is selected
+        Training that starts after pokemon is selected through having 2 windows, 
+        one of the camera and one of the pose to be matched.
         '''
         cap = cv2.VideoCapture(0)
         self.working_pokemen = working_pokemon
@@ -867,6 +868,9 @@ class Game:
 
         #reference image switch statement
         def pull_image(chosen_pose):
+            '''
+            pulls the referenced image to show as the pose to match
+            '''
             if (chosen_pose == "Warrior Pose"):
                 return "warrior2.png"
             if (chosen_pose == "T Pose"):
@@ -877,6 +881,9 @@ class Game:
                 return "error.jpg"
 
         def show_frames():
+            '''
+            function to show live video feed with the Computer Vision on Top
+            '''
             # Get the latest frame and convert into Image
             if cap:
                 frame = cap.read()[1]
