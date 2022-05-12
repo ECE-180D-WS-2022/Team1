@@ -657,10 +657,10 @@ class Game:
 
         # Tutorial Text
         font_tuple = ("Lucida Sans", 16, "bold")
-        objective_t = tk.Text(tutorial_frame, height = 15, width = 80, bg = "#34cfeb")
-        leveling_t = tk.Text(tutorial_frame, height = 15, width = 80, bg = "#34cfeb")
-        training_t = tk.Text(tutorial_frame, height = 15, width = 80, bg = "#34cfeb")
-        battling_t = tk.Text(tutorial_frame, height = 15, width = 80, bg = "#34cfeb")
+        objective_t = tk.Text(tutorial_frame, height = 6, width = 100, bg = "#34cfeb")
+        leveling_t = tk.Text(tutorial_frame, height = 6, width = 100, bg = "#34cfeb")
+        training_t = tk.Text(tutorial_frame, height = 6, width = 100, bg = "#34cfeb")
+        battling_t = tk.Text(tutorial_frame, height = 6, width = 100, bg = "#34cfeb")
         objective_text = """The objective of PokEEmon is to construct the most powerful team possible by means of battling other players, defeating CPU opponents, and training with your monsters. Players can construct teams of up to six PokEEmon that each possess different strengths and weaknesses including their types and attributes. As prospective trainers play through the game, their PokEEmon will grow with them. """
         leveling_text = """Your PokEEmon gain experience through two methods: training and battling. By gaining experience points through battling opponents and training, each PokEEmon is able to level up, gaining access to new moves and increasing their attribute values for battle. For every 1000 experience points, your PokEEmon will level up. Depending on the species of your PokEEmon, they may learn new moves once they reach certain levels."""
         training_text = """Training entails utilizing a webcam to match poses displayed on the game screen. Before training can begin, players must select a specific team member to train. A yoga pose will be depicted next to your webcam feed, and the goal is to match the depicted pose as closely as possible. For each successfully matched pose, your selected PokEEmon will gain XXXXX experience points. """
