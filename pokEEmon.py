@@ -283,6 +283,9 @@ class Battle:
         self.window.after(1000, self.do_move)
 
     def wait_screen(self, prev_frame = None, move_update = None):
+        '''
+        Creating screen that handles waiting for opponent to make a move 
+        '''
         print("Waiting for opponent move")
         if prev_frame:
             prev_frame.pack_forget()
@@ -348,6 +351,9 @@ class Battle:
         gameover_frame.pack()
 
     def bot_move(self, prev_frame = None):
+        '''
+        Method defining a bot making a move
+        '''
         winsound.PlaySound('whoosh.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
         if prev_frame:
             prev_frame.pack_forget()
@@ -649,9 +655,31 @@ class Game:
         mode_label = tk.Label(tutorial_frame, image=mode_img, bg = "#34cfeb")
         mode_label.photo = mode_img
 
+        # Tutorial Text
+        font_tuple = ("Lucida Sans", 16, "bold")
+        objective_t = tk.Text(tutorial_frame, height = 15, width = 80, bg = "#34cfeb")
+        leveling_t = tk.Text(tutorial_frame, height = 15, width = 80, bg = "#34cfeb")
+        training_t = tk.Text(tutorial_frame, height = 15, width = 80, bg = "#34cfeb")
+        battling_t = tk.Text(tutorial_frame, height = 15, width = 80, bg = "#34cfeb")
+        objective_text = """The objective of PokEEmon is to construct the most powerful team possible by means of battling other players, defeating CPU opponents, and training with your monsters. Players can construct teams of up to six PokEEmon that each possess different strengths and weaknesses including their types and attributes. As prospective trainers play through the game, their PokEEmon will grow with them. """
+        leveling_text = """Your PokEEmon gain experience through two methods: training and battling. By gaining experience points through battling opponents and training, each PokEEmon is able to level up, gaining access to new moves and increasing their attribute values for battle. For every 1000 experience points, your PokEEmon will level up. Depending on the species of your PokEEmon, they may learn new moves once they reach certain levels."""
+        training_text = """Training entails utilizing a webcam to match poses displayed on the game screen. Before training can begin, players must select a specific team member to train. A yoga pose will be depicted next to your webcam feed, and the goal is to match the depicted pose as closely as possible. For each successfully matched pose, your selected PokEEmon will gain XXXXX experience points. """
+        battling_text = """The battling system works identically between multiplayer and CPU battles. In both instances, you will be facing a team of PokEEmon in turn-based combat. A battle ends when either one party forfeits or when all members of a party’s HP reaches zero. Battles progress through a turn-based system. During their turn, players can either select a PokEEmon on their team to switch out or select a move to use in battle. Each PokEEmon will have a unique set of moves depending on their species and level. """
+        objective_t.insert(tk.INSERT, objective_text)
+        leveling_t.insert(tk.INSERT, leveling_text)
+        training_t.insert(tk.INSERT, training_text)
+        battling_t.insert(tk.INSERT, battling_text)
+        objective_t.configure(font = font_tuple)
+        leveling_t.configure(font = font_tuple)
+        training_t.configure(font = font_tuple)
+        battling_t.configure(font = font_tuple)
         back_button = tk.Button(tutorial_frame, text = "Back", command = partial(self.home_screen, tutorial_frame), height=6, width = 40, bg = "#ffcc03")
 
         mode_label.pack(pady=10)
+        objective_t.pack()
+        leveling_t.pack()
+        training_t.pack()
+        battling_t.pack()
         back_button.pack(pady=10)
         tutorial_frame.pack()
 
@@ -669,7 +697,6 @@ class Game:
 
         if not self.choose_opp_frame:
             self.choose_opp_frame = tk.Frame(self.window, bg = "#34cfeb")
-            # mode_label = tk.Label(self.choose_opp_frame, text = "Choose Battle Mode")
             mode_img =  ImageTk.PhotoImage(Image.open("choose_battle_mode_img.png"))
             mode_label = tk.Label(self.choose_opp_frame, image=mode_img, bg = "#34cfeb")
             mode_label.photo = mode_img
