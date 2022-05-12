@@ -728,10 +728,15 @@ class Game:
 
         # Tutorial Text
         font_tuple = ("Lucida Sans", 16, "bold")
-        objective_t = tk.Text(tutorial_frame, height = 15, width = 80, bg = "#34cfeb")
-        leveling_t = tk.Text(tutorial_frame, height = 15, width = 80, bg = "#34cfeb")
-        training_t = tk.Text(tutorial_frame, height = 15, width = 80, bg = "#34cfeb")
-        battling_t = tk.Text(tutorial_frame, height = 15, width = 80, bg = "#34cfeb")
+        heading_font_tuple = ("Comic Sans", 20, "bold")
+        objective_t = tk.Text(tutorial_frame, height = 6, width = 100, bg = "#34cfeb")
+        leveling_t = tk.Text(tutorial_frame, height = 6, width = 100, bg = "#34cfeb")
+        training_t = tk.Text(tutorial_frame, height = 6, width = 100, bg = "#34cfeb")
+        battling_t = tk.Text(tutorial_frame, height = 6, width = 100, bg = "#34cfeb")
+        objective_header = tk.Label(tutorial_frame, text="Objective", bg = "#34cfeb")
+        leveling_header = tk.Label(tutorial_frame, text="Leveling System", bg = "#34cfeb")
+        training_header = tk.Label(tutorial_frame, text="Training", bg = "#34cfeb")
+        battling_header = tk.Label(tutorial_frame, text="Battling", bg = "#34cfeb")
         objective_text = """The objective of PokEEmon is to construct the most powerful team possible by means of battling other players, defeating CPU opponents, and training with your monsters. Players can construct teams of up to six PokEEmon that each possess different strengths and weaknesses including their types and attributes. As prospective trainers play through the game, their PokEEmon will grow with them. """
         leveling_text = """Your PokEEmon gain experience through two methods: training and battling. By gaining experience points through battling opponents and training, each PokEEmon is able to level up, gaining access to new moves and increasing their attribute values for battle. For every 1000 experience points, your PokEEmon will level up. Depending on the species of your PokEEmon, they may learn new moves once they reach certain levels."""
         training_text = """Training entails utilizing a webcam to match poses displayed on the game screen. Before training can begin, players must select a specific team member to train. A yoga pose will be depicted next to your webcam feed, and the goal is to match the depicted pose as closely as possible. For each successfully matched pose, your selected PokEEmon will gain XXXXX experience points. """
@@ -744,12 +749,20 @@ class Game:
         leveling_t.configure(font = font_tuple)
         training_t.configure(font = font_tuple)
         battling_t.configure(font = font_tuple)
+        objective_header.configure(font = heading_font_tuple)
+        leveling_header.configure(font = heading_font_tuple)
+        training_header.configure(font = heading_font_tuple)
+        battling_header.configure(font = heading_font_tuple)
         back_button = tk.Button(tutorial_frame, text = "Back", command = partial(self.home_screen, tutorial_frame), height=6, width = 40, bg = "#ffcc03")
 
         mode_label.pack(pady=10)
+        objective_header.pack()
         objective_t.pack()
+        leveling_header.pack()
         leveling_t.pack()
+        training_header.pack()
         training_t.pack()
+        battling_header.pack()
         battling_t.pack()
         back_button.pack(pady=10)
         tutorial_frame.pack()
