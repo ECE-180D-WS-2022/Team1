@@ -79,7 +79,7 @@ def level_up (pk_df, xp_amt):
         ans["special_defense"] = int(((((2*basepk_df["special_defense"]) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
         ans["speed"] = int(((((2*basepk_df["speed"]) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
 
-        ans = learn_moves(ans, lvl)
+        #ans = learn_moves(ans, lvl)
 
     return ans
 
@@ -199,7 +199,7 @@ class Battle:
                     if wordp == [] or movep == []:
                         continue
 
-                    if self.edit_distance(wordp, movep) < 3:
+                    if self.edit_distance(wordp, movep) < 2:
                         self.gesture_screen(move)
                         return
 
@@ -217,6 +217,10 @@ class Battle:
         self.move_screen(self.choose_frame)
 
     def quit(self, prev_frame = None):
+        if self.stop_listening is not None:
+            self.stop_listening(wait_for_stop=False)
+            self.stop_listening = None
+
         self.gameover = True
         self.user.gamestats_df["games_played"] += 1
         self.user.gamestats_df.to_csv(self.user.path + "/gamestats.csv", index=False, quoting=csv.QUOTE_NONNUMERIC)
@@ -387,6 +391,10 @@ class Battle:
             self.window.after(3000, lambda : self.bot_move(self.wait_frame))
 
     def gameover_screen(self, won, prev_frame = None):
+        if self.stop_listening is not None:
+            self.stop_listening(wait_for_stop=False)
+            self.stop_listening = None
+
         if prev_frame:
             prev_frame.pack_forget()
 
@@ -590,6 +598,7 @@ class Game:
         self.connected = False
         self.request_num = None
         self.id = id
+        self.battle = None
 
 
     def connect_mqtt(self):
@@ -653,8 +662,8 @@ class Game:
                 self.opp_user = User()
                 self.opp_user.username = msg[1]
                 self.opp_user.team_df = pd.read_csv(io.StringIO(msg[4]), sep='\s+')
-                b = Battle(self.user, self.request_num, self.opp_user, self.window, self.client, self.home_screen, self.id)
-                b.wait_screen(self.response_frame)
+                self.battle = Battle(self.user, self.request_num, self.opp_user, self.window, self.client, self.home_screen, self.id)
+                self.battle.wait_screen(self.response_frame)
             else:
                 print("Battle declined by: " + msg[1])
                 self.client.unsubscribe("ece180d/pokEEmon/" + self.user.username + "/response")
@@ -667,6 +676,10 @@ class Game:
         print("Home screen")
         if prev_frame:
             prev_frame.pack_forget()
+
+        if self.battle is not None:
+            del self.battle
+            self.battle = None
 
         self.client.on_message = self.rcv_request_mqtt
         self.client.unsubscribe("ece180d/pokEEmon/" + self.id)
@@ -873,11 +886,11 @@ class Game:
         print(self.opp_user.team_df)
 
 
-        b = Battle(self.user, None, self.opp_user, self.window, self.client, self.home_screen, self.id, True)
+        self.battle = Battle(self.user, None, self.opp_user, self.window, self.client, self.home_screen, self.id, True)
         if random.randint(0, 1):
-            b.move_screen()
+            self.battle.move_screen()
         else:
-            b.wait_screen()
+            self.battle.wait_screen()
 
 
     def set_pokemon(self, pokemon_name):
@@ -1036,8 +1049,8 @@ class Game:
         self.client.publish("ece180d/pokEEmon/" + opp_username + "/response", response_msg)
         self.client.unsubscribe("ece180d/pokEEmon/" + self.user.username + "/cancel")
         print("Unsubscribed from " + "ece180d/pokEEmon/" + self.user.username + "/cancel")
-        b = Battle(self.user, self.request_num, self.opp_user, self.window, self.client, self.home_screen, self.id)
-        b.move_screen(self.receive_frame)
+        self.battle = Battle(self.user, self.request_num, self.opp_user, self.window, self.client, self.home_screen, self.id)
+        self.battle.move_screen(self.receive_frame)
 
     def decline_request(self, opp_username):
         print("Declined game with: " + opp_username)
