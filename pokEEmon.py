@@ -22,6 +22,7 @@ import random
 import winsound
 import math
 from level_up import import_learnset
+import pronouncing
 #import moves_new as mv
 
 movegesture = {"Thunderbolt" : "slash", "Tackle" : "block", "Water-gun" : "whip", "Flamethrower" : "scratch"}
@@ -105,6 +106,7 @@ class Battle:
         self.movename = None
         self.moves_df = pd.read_csv("data/moves.csv")
         self.singleplayer = singleplayer
+        self.gameover = False
 
     def rcv_gesture_mqtt(self, client, userdata, message):
         print("Received move message")
@@ -150,15 +152,56 @@ class Battle:
         else:
             print("Received unexpected message")
 
+    def edit_distance(self, list1, list2):
+        len1 = len(list1)
+        len2 = len(list2)
+
+        DP = [[0 for i in range(len1 + 1)]
+                 for j in range(2)];
+
+        for i in range(0, len1 + 1):
+            DP[0][i] = i
+
+        for i in range(1, len2 + 1):
+            for j in range(0, len1 + 1):
+                if (j == 0):
+                    DP[i % 2][j] = i
+                elif(list1[j - 1] == list2[i-1]):
+                    DP[i % 2][j] = DP[(i - 1) % 2][j - 1]
+                else:
+                    DP[i % 2][j] = (1 + min(DP[(i - 1) % 2][j],
+                                        min(DP[i % 2][j - 1],
+                                        DP[(i - 1) % 2][j - 1])))
+
+        return DP[len2 % 2][len1]
+
     def voice_callback(self, recognizer, audio):
         try:
-            words = recognizer.recognize_google(audio)
+            words = recognizer.recognize_google(audio).lower()
             print("Heard: " + words)
             for move in ["move1", "move2", "move3", "move4"]:
-                movename = self.user.team_df.iloc[self.curr_pokemon][move]
-                if movename.lower().replace("-", " ") in words.lower() or movename.lower().replace("-", "") in words.lower():
+                movename = self.user.team_df.iloc[self.curr_pokemon][move].lower()
+                if movename.replace("-", " ") in words or movename.replace("-", "") in words:
                     self.gesture_screen(move)
                     return
+
+                movename =  movename.replace("-", "")
+                rhymes = pronouncing.rhymes(movename)
+                for rhyme in rhymes:
+                    if rhyme in words:
+                        self.gesture_screen(move)
+                        return
+
+                for word in words.split(" "):
+                    wordp = pronouncing.phones_for_word(word)
+                    movep = pronouncing.phones_for_word(movename)
+
+                    if wordp == [] or movep == []:
+                        continue
+
+                    if self.edit_distance(wordp, movep) < 3:
+                        self.gesture_screen(move)
+                        return
 
             print("Not a move")
         except sr.UnknownValueError:
@@ -172,6 +215,17 @@ class Battle:
             choose_msg = "change,{},{},{}".format(self.user.username, self.battle_id, index)
             self.client.publish("ece180d/pokEEmon/" + self.opp_user.username + "/change", choose_msg)
         self.move_screen(self.choose_frame)
+
+    def quit(self, prev_frame = None):
+        self.gameover = True
+        self.user.gamestats_df["games_played"] += 1
+        self.user.gamestats_df.to_csv(self.user.path + "/gamestats.csv", index=False, quoting=csv.QUOTE_NONNUMERIC)
+
+        if not self.singleplayer:
+            quit_msg = "quit,{},{}".format(self.user.username, self.battle_id)
+            self.client.publish("ece180d/pokEEmon/" + self.opp_user.username + "/quit", move_msg)
+
+        self.gameover_screen(False,  prev_frame)
 
     def do_move(self):
         winsound.PlaySound('whoosh.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
@@ -284,7 +338,7 @@ class Battle:
 
     def wait_screen(self, prev_frame = None, move_update = None):
         '''
-        Creating screen that handles waiting for opponent to make a move 
+        Creating screen that handles waiting for opponent to make a move
         '''
         print("Waiting for opponent move")
         if prev_frame:
@@ -314,6 +368,7 @@ class Battle:
         wait_img =  ImageTk.PhotoImage(Image.open("wait_opponent_move_img.png"))
         wait_label = tk.Label(self.wait_frame, image=wait_img, bg = "#34cfeb")
         wait_label.photo = wait_img
+        quit_button = tk.Button(self.wait_frame, text="Quit", command = partial(self.quit, self.wait_frame), height = 4, width = 50, bg="#ffcc03")
         user_pokemon_name = self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("name")]
         userteam_string = self.user.team_df.loc[:, ["name", "curr_hp"]].to_string(index=False)
         userteam_string = userteam_string.replace(user_pokemon_name, "**" + user_pokemon_name)
@@ -323,6 +378,7 @@ class Battle:
         oppteam_string = oppteam_string.replace(opp_pokemon_name, "**" + opp_pokemon_name)
         oppteam_label = tk.Label(self.wait_frame, text="\nOpponent team: \n{}\n".format(oppteam_string), bg = "#34cfeb", font=("Arial", 30))
         wait_label.pack(pady = 5)
+        quit_button.pack(pady = 30)
         userteam_label.pack()
         oppteam_label.pack()
         self.wait_frame.pack()
@@ -351,9 +407,9 @@ class Battle:
         gameover_frame.pack()
 
     def bot_move(self, prev_frame = None):
-        '''
-        Method defining a bot making a move
-        '''
+        if self.gameover:
+            return
+
         winsound.PlaySound('whoosh.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
         if prev_frame:
             prev_frame.pack_forget()
@@ -456,6 +512,8 @@ class Battle:
         oppteam_label = tk.Label(self.move_frame, text="\nOpponent team: \n{}\n".format(oppteam_string), bg = "#34cfeb", font=("Arial", 30), anchor="n")
         change_button = tk.Button(self.move_frame, text="Change pokEEmon", command = self.choose_screen, height = 4, width = 50, bg="#ffcc03")
         change_button.pack(pady = 30)
+        quit_button = tk.Button(self.move_frame, text="Quit", command = partial(self.quit, self.move_frame), height = 4, width = 50, bg="#ffcc03")
+        quit_button.pack(pady = 30)
         userteam_label.pack(side=tk.LEFT, padx = 10)
         oppteam_label.pack(side=tk.LEFT, padx = 10)
 
@@ -862,7 +920,7 @@ class Game:
     def train_screen(self, working_pokemon):
         winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
         '''
-        Training that starts after pokemon is selected through having 2 windows, 
+        Training that starts after pokemon is selected through having 2 windows,
         one of the camera and one of the pose to be matched.
         '''
         cap = cv2.VideoCapture(0)
