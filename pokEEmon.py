@@ -21,11 +21,41 @@ import pose as ps
 import random
 import winsound
 import math
+from level_up import import_learnset
 import pronouncing
 #import moves_new as mv
 
 movegesture = {"Thunderbolt" : "slash", "Tackle" : "block", "Water-gun" : "whip", "Flamethrower" : "scratch"}
+learnset = import_learnset()
 
+def learn_moves(pk_df, lvl):
+
+    ans = pk_df.copy()
+
+    #if level learnset is not empty
+    if not learnset[ans.loc["id"] - 1][lvl] :
+        #find name of move to be learned
+        move_learned = pd.read_csv("data/moves.csv")
+        move_learned = move_learned.loc[learnset[ans.loc["id"] - 1][lvl][0] == moves["id"]]
+
+        #check if there are empty move slots
+        if pd.isnull(ans.loc["move2"]):
+            ans.at["move2"] = move_learned.at["identifier"]
+            return ans
+
+        if pd.isnull(ans.loc["move3"]):
+            ans.at["move3"] = move_learned.at["identifier"]
+            return ans
+
+        if pd.isnull(ans.loc["move4"]):
+            ans.at["move4"] = move_learned.at["identifier"]
+            return ans
+
+        #if no empty move slots, just randomly replace one
+        index = randrange(4) + 10
+        ans.iat[index] = move_learned.at["identifier"]
+
+    return ans
 
 def level_up (pk_df, xp_amt):
     #1000 xp to level up
@@ -48,6 +78,8 @@ def level_up (pk_df, xp_amt):
         ans["special_attack"] = int(((((2*basepk_df["special_attack"]) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
         ans["special_defense"] = int(((((2*basepk_df["special_defense"]) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
         ans["speed"] = int(((((2*basepk_df["speed"]) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
+
+        ans = learn_moves(ans, lvl)
 
     return ans
 
@@ -305,6 +337,9 @@ class Battle:
         self.window.after(1000, self.do_move)
 
     def wait_screen(self, prev_frame = None, move_update = None):
+        '''
+        Creating screen that handles waiting for opponent to make a move
+        '''
         print("Waiting for opponent move")
         if prev_frame:
             prev_frame.pack_forget()
@@ -330,7 +365,6 @@ class Battle:
         else:
             winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
 
-        # wait_label = tk.Label(self.wait_frame, text="Waiting for opponent move",bg = "#34cfeb", font=("Arial", 30))
         wait_img =  ImageTk.PhotoImage(Image.open("wait_opponent_move_img.png"))
         wait_label = tk.Label(self.wait_frame, image=wait_img, bg = "#34cfeb")
         wait_label.photo = wait_img
@@ -358,12 +392,10 @@ class Battle:
 
         gameover_frame = tk.Frame(self.window, bg = "#34cfeb")
         if won:
-            # gameover_label = tk.Label(gameover_frame, text="You won!")
             won_img = ImageTk.PhotoImage(Image.open("won_img.png"))
             gameover_label = tk.Label(gameover_frame, image=won_img, bg = "#34cfeb")
             gameover_label.photo = won_img
         else:
-            # gameover_label = tk.Label(gameover_frame, text="You lost")
             lost_img = ImageTk.PhotoImage(Image.open("lost_img.png"))
             gameover_label = tk.Label(gameover_frame, image=lost_img, bg = "#34cfeb")
             gameover_label.photo = lost_img
@@ -443,7 +475,6 @@ class Battle:
             winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
 
         if self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("curr_hp")] > 0:
-            # move_label = tk.Label(self.move_frame, text="Choose your move", bg = "#34cfeb", font=("Arial", 30))
             img = ImageTk.PhotoImage(Image.open("choose_move_img.png"))
             move_label = tk.Label(self.move_frame, image = img, bg = "#34cfeb")
             move_label.photo = img
@@ -466,7 +497,6 @@ class Battle:
 
             self.stop_listening = self.rec.listen_in_background(self.mic, self.voice_callback, 2)
         else:
-            # change_label = tk.Label(self.move_frame, text="Change your pokemon", bg = "#34cfeb", font=("Arial", 30))
             img_2 = ImageTk.PhotoImage(Image.open("change_pokemon.png"))
             change_label = tk.Label(self.move_frame, image = img_2, bg = "#34cfeb")
             change_label.photo = img_2
@@ -505,7 +535,6 @@ class Battle:
         img = ImageTk.PhotoImage(Image.open("choose_pokemon_img.png"))
         choose_label = tk.Label(self.choose_frame, image = img, bg = "#34cfeb")
         choose_label.photo = img
-        # choose_label = tk.Label(self.choose_frame, text="Choose your pokemon", bg = "#34cfeb")
         choose_label.pack()
         user_pokemon = self.user.team_df.loc[:,["name","curr_hp"]]
         for row in user_pokemon.itertuples():
@@ -684,9 +713,31 @@ class Game:
         mode_label = tk.Label(tutorial_frame, image=mode_img, bg = "#34cfeb")
         mode_label.photo = mode_img
 
+        # Tutorial Text
+        font_tuple = ("Lucida Sans", 16, "bold")
+        objective_t = tk.Text(tutorial_frame, height = 15, width = 80, bg = "#34cfeb")
+        leveling_t = tk.Text(tutorial_frame, height = 15, width = 80, bg = "#34cfeb")
+        training_t = tk.Text(tutorial_frame, height = 15, width = 80, bg = "#34cfeb")
+        battling_t = tk.Text(tutorial_frame, height = 15, width = 80, bg = "#34cfeb")
+        objective_text = """The objective of PokEEmon is to construct the most powerful team possible by means of battling other players, defeating CPU opponents, and training with your monsters. Players can construct teams of up to six PokEEmon that each possess different strengths and weaknesses including their types and attributes. As prospective trainers play through the game, their PokEEmon will grow with them. """
+        leveling_text = """Your PokEEmon gain experience through two methods: training and battling. By gaining experience points through battling opponents and training, each PokEEmon is able to level up, gaining access to new moves and increasing their attribute values for battle. For every 1000 experience points, your PokEEmon will level up. Depending on the species of your PokEEmon, they may learn new moves once they reach certain levels."""
+        training_text = """Training entails utilizing a webcam to match poses displayed on the game screen. Before training can begin, players must select a specific team member to train. A yoga pose will be depicted next to your webcam feed, and the goal is to match the depicted pose as closely as possible. For each successfully matched pose, your selected PokEEmon will gain XXXXX experience points. """
+        battling_text = """The battling system works identically between multiplayer and CPU battles. In both instances, you will be facing a team of PokEEmon in turn-based combat. A battle ends when either one party forfeits or when all members of a party’s HP reaches zero. Battles progress through a turn-based system. During their turn, players can either select a PokEEmon on their team to switch out or select a move to use in battle. Each PokEEmon will have a unique set of moves depending on their species and level. """
+        objective_t.insert(tk.INSERT, objective_text)
+        leveling_t.insert(tk.INSERT, leveling_text)
+        training_t.insert(tk.INSERT, training_text)
+        battling_t.insert(tk.INSERT, battling_text)
+        objective_t.configure(font = font_tuple)
+        leveling_t.configure(font = font_tuple)
+        training_t.configure(font = font_tuple)
+        battling_t.configure(font = font_tuple)
         back_button = tk.Button(tutorial_frame, text = "Back", command = partial(self.home_screen, tutorial_frame), height=6, width = 40, bg = "#ffcc03")
 
         mode_label.pack(pady=10)
+        objective_t.pack()
+        leveling_t.pack()
+        training_t.pack()
+        battling_t.pack()
         back_button.pack(pady=10)
         tutorial_frame.pack()
 
@@ -704,7 +755,6 @@ class Game:
 
         if not self.choose_opp_frame:
             self.choose_opp_frame = tk.Frame(self.window, bg = "#34cfeb")
-            # mode_label = tk.Label(self.choose_opp_frame, text = "Choose Battle Mode")
             mode_img =  ImageTk.PhotoImage(Image.open("choose_battle_mode_img.png"))
             mode_label = tk.Label(self.choose_opp_frame, image=mode_img, bg = "#34cfeb")
             mode_label.photo = mode_img
@@ -847,7 +897,7 @@ class Game:
     def train_screen_begin(self, prev_screen = None, camera = None):
         winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
         '''
-        Giving choices for pokemon to train
+        Creates the screen that gives choices for pokemon to train
         '''
         print("Training screen Beginning")
         if prev_screen:
@@ -870,7 +920,8 @@ class Game:
     def train_screen(self, working_pokemon):
         winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
         '''
-        Training that starts after pokemon is selected
+        Training that starts after pokemon is selected through having 2 windows,
+        one of the camera and one of the pose to be matched.
         '''
         cap = cv2.VideoCapture(0)
         self.working_pokemen = working_pokemon
@@ -890,7 +941,6 @@ class Game:
         #Initializing mediapipe pose class.
         mp_pose = mp.solutions.pose
         #Setting up the Pose function.
-        #pose = mp_pose.Pose(static_image_mode=True, min_detection_confidence=0.3, model_complexity=2)
         #Initializing mediapipe drawing class, useful for annotation.
         mp_drawing = mp.solutions.drawing_utils
 
@@ -898,12 +948,14 @@ class Game:
         label = tk.Label(self.train_frame)
         #create label for pose reference image
         ref_img_label = tk.Label(self.train_frame)
-        # ref_img_label = tk.Label(self.train_frame, bg="#34cfeb")
 
         pose_video = mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.5, model_complexity=1)
 
         #reference image switch statement
         def pull_image(chosen_pose):
+            '''
+            pulls the referenced image to show as the pose to match
+            '''
             if (chosen_pose == "Warrior Pose"):
                 return "warrior2.png"
             if (chosen_pose == "T Pose"):
@@ -914,6 +966,9 @@ class Game:
                 return "error.jpg"
 
         def show_frames():
+            '''
+            function to show live video feed with the Computer Vision on Top
+            '''
             # Get the latest frame and convert into Image
             if cap:
                 frame = cap.read()[1]
