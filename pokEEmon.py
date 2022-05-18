@@ -122,7 +122,7 @@ class Battle:
             print("Incorrect gestures")
 
     def rcv_battle_mqtt(self, client, userdata, message):
-        print("Received move message")
+        print("Received move or cancel message")
         msg = message.payload
         print(msg)
 
@@ -149,6 +149,12 @@ class Battle:
         elif msg and msg[0] == "change" and int(msg[2]) == self.battle_id:
             self.opp_pokemon = int(msg[3])
             self.wait_screen(self.wait_frame, "{} changed their pokEEmon to {}".format(self.opp_user.username, self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("name")]))
+        elif msg and msg[0] == "quit" and int(msg[2]) == self.battle_id:
+            print("You won")
+            self.user.gamestats_df["games_played"] += 1
+            self.user.gamestats_df["wins"] += 1
+            self.user.gamestats_df.to_csv(self.user.path + "/gamestats.csv", index=False, quoting=csv.QUOTE_NONNUMERIC)
+            self.gameover_screen(True, self.wait_frame)
         else:
             print("Received unexpected message")
 
@@ -358,8 +364,10 @@ class Battle:
             self.client.on_message = self.rcv_battle_mqtt
             self.client.subscribe("ece180d/pokEEmon/" + self.user.username + "/move", qos=1)
             self.client.subscribe("ece180d/pokEEmon/" + self.user.username + "/change", qos=1)
+            self.client.subscribe("ece180d/pokEEmon/" + self.user.username + "/quit", qos = 1)
             print("Subscribed to " + "ece180d/pokEEmon/" + self.user.username + "/move")
             print("Subscribed to " + "ece180d/pokEEmon/" + self.user.username + "/change")
+            print("Subscribed to " + "ece180d/pokEEmon/" + self.user.username + "/quit")
 
         self.wait_frame = tk.Frame(self.window, bg = "#34cfeb")
 
@@ -470,8 +478,10 @@ class Battle:
         if not self.singleplayer:
             self.client.unsubscribe("ece180d/pokEEmon/" + self.user.username + "/move")
             self.client.unsubscribe("ece180d/pokEEmon/" + self.user.username + "/change")
+            self.client.subscribe("ece180d/pokEEmon/" + self.user.username + "/quit", qos = 1)
             print("Unsubscribed to " + "ece180d/pokEEmon/" + self.user.username + "/move")
             print("Unsubscribed to " + "ece180d/pokEEmon/" + self.user.username + "/change")
+            print("Subscribed to " + "ece180d/pokEEmon/" + self.user.username + "/quit")
 
         self.move_frame = tk.Frame(self.window, bg = "#34cfeb")
 
