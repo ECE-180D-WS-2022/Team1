@@ -192,16 +192,16 @@ class Battle:
                         self.gesture_screen(move)
                         return
 
-                for word in words.split(" "):
-                    wordp = pronouncing.phones_for_word(word)
-                    movep = pronouncing.phones_for_word(movename)
+                # for word in words.split(" "):
+                #     wordp = pronouncing.phones_for_word(word)
+                #     movep = pronouncing.phones_for_word(movename)
 
-                    if wordp == [] or movep == []:
-                        continue
+                #     if wordp == [] or movep == []:
+                #         continue
 
-                    if self.edit_distance(wordp, movep) < 2:
-                        self.gesture_screen(move)
-                        return
+                #     if self.edit_distance(wordp, movep) < 2:
+                #         self.gesture_screen(move)
+                #         return
 
             print("Not a move")
         except sr.UnknownValueError:
@@ -699,10 +699,11 @@ class Game:
 
             photo_label = tk.Label(self.home_frame, image = img, bg = "#34cfeb")
             photo_label.photo = img
-            battle_button = tk.Button(self.home_frame, text = "Battle", command = partial(self.choose_opp_screen, self.home_frame), height = 6, width = 70, bg="#ffcc03")
-            train_button = tk.Button(self.home_frame, text = "Train", command = partial(self.train_screen_begin, self.home_frame), height = 6, width = 70, bg = "#ffcc03")
-            tutorial_button = tk.Button(self.home_frame, text = "Tutorial", command = partial(self.tutorial_screen, self.home_frame), height = 6, width = 70, bg="#ffcc03")
-            exit_button = tk.Button(self.home_frame, text = "Exit", command = self.exit_game, height = 6, width = 70, bg="#ffcc03")
+            f = tk.font.Font(size=40)
+            battle_button = tk.Button(self.home_frame, text = "Battle", command = partial(self.choose_opp_screen, self.home_frame), height = 2, width = 15, bg="#ffcc03",font=f)
+            train_button = tk.Button(self.home_frame, text = "Train", command = partial(self.train_screen_begin, self.home_frame), height = 2, width = 15, bg = "#ffcc03", font=f)
+            tutorial_button = tk.Button(self.home_frame, text = "Tutorial", command = partial(self.tutorial_screen, self.home_frame), height = 2, width = 15, bg="#ffcc03", font=f)
+            exit_button = tk.Button(self.home_frame, text = "Exit", command = self.exit_game, height = 2, width = 15, bg="#ffcc03", font=f)
 
             photo_label.pack(pady= 30)
             battle_button.pack(pady=10)
@@ -932,6 +933,7 @@ class Game:
             camera.release()
 
         if not self.train_frame_begin:
+            f = tk.font.Font(size=30)
             self.train_frame_begin = tk.Frame(self.window, bg = "#34cfeb")
             choose_img =  ImageTk.PhotoImage(Image.open("choose_img.png"))
             choose_label = tk.Label(self.train_frame_begin, image=choose_img, bg = "#34cfeb")
@@ -939,8 +941,8 @@ class Game:
             pokemon_list = self.user.team_df["name"].tolist()
             choose_label.pack()
             for pokemon_name in pokemon_list:
-                tk.Button(self.train_frame_begin, text = pokemon_name, command = partial(self.train_screen, pokemon_name), height = 4, width = 25, bg="#ffcc03").pack(pady=10)
-            tk.Button(self.train_frame_begin, text = "Back", command = partial(self.home_screen, self.train_frame_begin), height = 4, width = 30, bg="#ffcc03").pack(pady=10)
+                tk.Button(self.train_frame_begin, text = pokemon_name, command = partial(self.train_screen, pokemon_name), height = 2, width = 15, bg="#ffcc03", font=f).pack(pady=10)
+            tk.Button(self.train_frame_begin, text = "Back", command = partial(self.home_screen, self.train_frame_begin), height = 2, width = 15, bg="#ffcc03", font = f).pack(pady=10)
         self.train_frame_begin.pack()
 
     def train_screen(self, working_pokemon):
