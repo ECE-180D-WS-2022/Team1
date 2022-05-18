@@ -96,10 +96,6 @@ class Battle:
         self.home = home
         self.curr_pokemon = 0
         self.opp_pokemon = 0
-        self.wait_frame = None
-        self.move_frame = None
-        self.gesture_frame = None
-        self.choose_frame = None
         self.mic = None
         self.rec = None
         self.stop_listening = None
@@ -108,6 +104,7 @@ class Battle:
         self.moves_df = pd.read_csv("data/moves.csv")
         self.singleplayer = singleplayer
         self.gameover = False
+        self.curr_frame = None
 
     def rcv_gesture_mqtt(self, client, userdata, message):
         print("Received move message")
@@ -144,18 +141,19 @@ class Battle:
                 print("You lost")
                 self.user.gamestats_df["games_played"] += 1
                 self.user.gamestats_df.to_csv(self.user.path + "/gamestats.csv", index=False, quoting=csv.QUOTE_NONNUMERIC)
-                self.gameover_screen(False, self.wait_frame)
+                self.gameover_screen(False)
             else:
-                self.move_screen(self.wait_frame, "{}'s {} played {}".format(self.opp_user.username.capitalize(), pokeemon_name, movename))
+                self.move_screen("{}'s {} played {}".format(self.opp_user.username.capitalize(), pokeemon_name, movename))
         elif msg and msg[0] == "change" and int(msg[2]) == self.battle_id:
             self.opp_pokemon = int(msg[3])
-            self.wait_screen(self.wait_frame, "{} changed their pokEEmon to {}".format(self.opp_user.username, self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("name")]))
+            self.wait_screen("{} changed their pokEEmon to {}".format(self.opp_user.username, self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("name")]))
         elif msg and msg[0] == "quit" and int(msg[2]) == self.battle_id:
             print("You won")
             self.user.gamestats_df["games_played"] += 1
             self.user.gamestats_df["wins"] += 1
             self.user.gamestats_df.to_csv(self.user.path + "/gamestats.csv", index=False, quoting=csv.QUOTE_NONNUMERIC)
-            self.gameover_screen(True, self.wait_frame)
+            self.gameover_screen(True)
+            print("Here")
         else:
             print("Received unexpected message")
 
@@ -221,14 +219,13 @@ class Battle:
         if not self.singleplayer:
             choose_msg = "change,{},{},{}".format(self.user.username, self.battle_id, index)
             self.client.publish("ece180d/pokEEmon/" + self.opp_user.username + "/change", choose_msg)
-        self.move_screen(self.choose_frame)
+        self.move_screen()
 
-    def quit(self, prev_frame = None):
+    def quit(self):
         if self.stop_listening is not None:
             self.stop_listening(wait_for_stop=False)
             self.stop_listening = None
 
-        self.gameover = True
         self.user.gamestats_df["games_played"] += 1
         self.user.gamestats_df.to_csv(self.user.path + "/gamestats.csv", index=False, quoting=csv.QUOTE_NONNUMERIC)
 
@@ -236,7 +233,7 @@ class Battle:
             quit_msg = "quit,{},{}".format(self.user.username, self.battle_id)
             self.client.publish("ece180d/pokEEmon/" + self.opp_user.username + "/quit", quit_msg)
 
-        self.gameover_screen(False,  prev_frame)
+        self.gameover_screen(False)
 
     def do_move(self):
         winsound.PlaySound('whoosh.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
@@ -270,9 +267,9 @@ class Battle:
             self.user.gamestats_df["wins"] += 1
             self.user.gamestats_df.to_csv(self.user.path + "/gamestats.csv", index=False, quoting=csv.QUOTE_NONNUMERIC)
 
-            self.gameover_screen(True, self.gesture_frame)
+            self.gameover_screen(True)
         else:
-            self.wait_screen(self.gesture_frame, "Your {} played {}".format(self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("name")], self.movename))
+            self.wait_screen("Your {} played {}".format(self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("name")], self.movename))
 
     def calc_damage(self, movename, random_mult, attack_pk, receive_pk):
         random_mult = float(random_mult) * 0.01  #random multiplier from 0.85 to 1
@@ -320,10 +317,8 @@ class Battle:
     def gesture_screen(self, move):
         print("Waiting for gesture")
         winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
-        if self.move_frame:
-            self.move_frame.pack_forget()
-        if self.gesture_frame:
-            self.gesture_frame.destroy()
+        if self.curr_frame:
+            self.curr_frame.destroy()
 
         if self.stop_listening is not None:
             self.stop_listening(wait_for_stop=False)
@@ -335,27 +330,25 @@ class Battle:
         self.client.subscribe("ece180d/pokEEmon/" + self.id, qos=1)
         print("Subscribed to " + "ece180d/pokEEmon/" + self.id)
 
-        self.gesture_frame = tk.Frame(self.window, bg = "#34cfeb")
-        gesture_label = tk.Label(self.gesture_frame, text="Do a {} ".format(movegesture[self.movename]), font=("Arial", 25), bg= "#34cfeb")
-        back_button = tk.Button(self.gesture_frame, text="Back", command = partial(self.move_screen, self.gesture_frame), height = 4, width = 20, bg = "#ffcc03")
+        gesture_frame = tk.Frame(self.window, bg = "#34cfeb")
+        gesture_label = tk.Label(gesture_frame, text="Do a {} ".format(movegesture[self.movename]), font=("Arial", 25), bg= "#34cfeb")
+        back_button = tk.Button(gesture_frame, text="Back", command = self.move_screen, height = 4, width = 20, bg = "#ffcc03")
         gesture_label.pack()
         back_button.pack(pady = 10)
 
-        self.gesture_frame.pack()
-
+        gesture_frame.pack()
+        self.curr_frame = gesture_frame
 
         # TODO: remove this when using gestures
         self.window.after(1000, self.do_move)
 
-    def wait_screen(self, prev_frame = None, move_update = None):
+    def wait_screen(self, move_update = None):
         '''
         Creating screen that handles waiting for opponent to make a move
         '''
         print("Waiting for opponent move")
-        if prev_frame:
-            prev_frame.pack_forget()
-        if self.wait_frame:
-            self.wait_frame.destroy()
+        if self.curr_frame:
+            self.curr_frame.destroy()
 
 
         self.client.unsubscribe("ece180d/pokEEmon/" + self.id)
@@ -370,42 +363,51 @@ class Battle:
             print("Subscribed to " + "ece180d/pokEEmon/" + self.user.username + "/change")
             print("Subscribed to " + "ece180d/pokEEmon/" + self.user.username + "/quit")
 
-        self.wait_frame = tk.Frame(self.window, bg = "#34cfeb")
+        wait_frame = tk.Frame(self.window, bg = "#34cfeb")
 
         if move_update is not None:
-            update_label = tk.Label(self.wait_frame, text=move_update, bg = "#34cfeb", font=("Arial", 30))
+            update_label = tk.Label(wait_frame, text=move_update, bg = "#34cfeb", font=("Arial", 30))
             update_label.pack()
         else:
             winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
 
         wait_img =  ImageTk.PhotoImage(Image.open("wait_opponent_move_img.png"))
-        wait_label = tk.Label(self.wait_frame, image=wait_img, bg = "#34cfeb")
+        wait_label = tk.Label(wait_frame, image=wait_img, bg = "#34cfeb")
         wait_label.photo = wait_img
-        quit_button = tk.Button(self.wait_frame, text="Quit", command = partial(self.quit, self.wait_frame), height = 4, width = 50, bg="#ffcc03")
+        quit_button = tk.Button(wait_frame, text="Quit", command = self.quit, height = 4, width = 50, bg="#ffcc03")
         user_pokemon_name = self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("name")]
         userteam_string = self.user.team_df.loc[:, ["name", "curr_hp"]].to_string(index=False)
         userteam_string = userteam_string.replace(user_pokemon_name, "**" + user_pokemon_name)
-        userteam_label = tk.Label(self.wait_frame, text="\nYour team: \n{}\n".format(userteam_string), bg = "#34cfeb", font=("Arial", 30))
+        userteam_label = tk.Label(wait_frame, text="\nYour team: \n{}\n".format(userteam_string), bg = "#34cfeb", font=("Arial", 30))
         opp_pokemon_name = self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("name")]
         oppteam_string = self.opp_user.team_df.loc[:, ["name", "curr_hp"]].to_string(index=False)
         oppteam_string = oppteam_string.replace(opp_pokemon_name, "**" + opp_pokemon_name)
-        oppteam_label = tk.Label(self.wait_frame, text="\nOpponent team: \n{}\n".format(oppteam_string), bg = "#34cfeb", font=("Arial", 30))
+        oppteam_label = tk.Label(wait_frame, text="\nOpponent team: \n{}\n".format(oppteam_string), bg = "#34cfeb", font=("Arial", 30))
         wait_label.pack(pady = 5)
         quit_button.pack(pady = 30)
         userteam_label.pack()
         oppteam_label.pack()
-        self.wait_frame.pack()
+        wait_frame.pack()
+        self.curr_frame = wait_frame
 
         if self.singleplayer:
-            self.window.after(3000, lambda : self.bot_move(self.wait_frame))
+            self.window.after(3000, self.bot_move)
 
-    def gameover_screen(self, won, prev_frame = None):
+    def gameover_screen(self, won):
+        self.gameover = True
+
+        if not self.singleplayer:
+            self.client.unsubscribe("ece180d/pokEEmon/" + self.id)
+            self.client.unsubscribe("ece180d/pokEEmon/" + self.user.username + "/move")
+            self.client.unsubscribe("ece180d/pokEEmon/" + self.user.username + "/change")
+            self.client.unsubscribe("ece180d/pokEEmon/" + self.user.username + "/quit")
+
         if self.stop_listening is not None:
             self.stop_listening(wait_for_stop=False)
             self.stop_listening = None
 
-        if prev_frame:
-            prev_frame.pack_forget()
+        if self.curr_frame:
+            self.curr_frame.destroy()
 
         gameover_frame = tk.Frame(self.window, bg = "#34cfeb")
         if won:
@@ -422,14 +424,15 @@ class Battle:
         gameover_label.pack(pady = 5)
         home_button.pack(pady = 5)
         gameover_frame.pack()
+        self.curr_frame = gameover_frame
 
-    def bot_move(self, prev_frame = None):
+    def bot_move(self):
         if self.gameover:
             return
 
         winsound.PlaySound('whoosh.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
-        if prev_frame:
-            prev_frame.pack_forget()
+        if self.curr_frame:
+            self.curr_frame.destroy()
 
         # bot will choose the move with the best damage
         random_mult = random.randrange(85,100)
@@ -464,13 +467,11 @@ class Battle:
             self.move_screen(move_update = "{}'s {} played {}".format(self.opp_user.username.capitalize(), pokeemon_name, best_move))
 
 
-    def move_screen(self, prev_frame = None, move_update = None):
+    def move_screen(self, move_update = None):
         print("Choose your move")
 
-        if prev_frame:
-            prev_frame.pack_forget()
-        if self.move_frame:
-            self.move_frame.destroy()
+        if self.curr_frame:
+            self.curr_frame.destroy()
 
 
         self.client.unsubscribe("ece180d/pokEEmon/" + self.id)
@@ -479,15 +480,16 @@ class Battle:
         if not self.singleplayer:
             self.client.unsubscribe("ece180d/pokEEmon/" + self.user.username + "/move")
             self.client.unsubscribe("ece180d/pokEEmon/" + self.user.username + "/change")
+            self.client.on_message = self.rcv_battle_mqtt
             self.client.subscribe("ece180d/pokEEmon/" + self.user.username + "/quit", qos = 1)
             print("Unsubscribed to " + "ece180d/pokEEmon/" + self.user.username + "/move")
             print("Unsubscribed to " + "ece180d/pokEEmon/" + self.user.username + "/change")
             print("Subscribed to " + "ece180d/pokEEmon/" + self.user.username + "/quit")
 
-        self.move_frame = tk.Frame(self.window, bg = "#34cfeb")
+        move_frame = tk.Frame(self.window, bg = "#34cfeb")
 
         if move_update:
-            update_label = tk.Label(self.move_frame, text=move_update, bg = "#34cfeb", font=("Arial", 30))
+            update_label = tk.Label(move_frame, text=move_update, bg = "#34cfeb", font=("Arial", 30))
             update_label.pack()
             winsound.PlaySound('whoosh.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
         else:
@@ -495,12 +497,12 @@ class Battle:
 
         if self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("curr_hp")] > 0:
             img = ImageTk.PhotoImage(Image.open("choose_move_img.png"))
-            move_label = tk.Label(self.move_frame, image = img, bg = "#34cfeb")
+            move_label = tk.Label(move_frame, image = img, bg = "#34cfeb")
             move_label.photo = img
-            move1_button = tk.Button(self.move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move1"], command = partial(self.gesture_screen, "move1"), height = 4, width = 50, bg="#ffcc03")
-            move2_button = tk.Button(self.move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move2"], command = partial(self.gesture_screen, "move2"), height = 4, width = 50, bg="#ffcc03")
-            move3_button = tk.Button(self.move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move3"], command = partial(self.gesture_screen, "move3"), height = 4, width = 50, bg="#ffcc03")
-            move4_button = tk.Button(self.move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move4"], command = partial(self.gesture_screen, "move4"), height = 4, width = 50, bg="#ffcc03")
+            move1_button = tk.Button(move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move1"], command = partial(self.gesture_screen, "move1"), height = 4, width = 50, bg="#ffcc03")
+            move2_button = tk.Button(move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move2"], command = partial(self.gesture_screen, "move2"), height = 4, width = 50, bg="#ffcc03")
+            move3_button = tk.Button(move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move3"], command = partial(self.gesture_screen, "move3"), height = 4, width = 50, bg="#ffcc03")
+            move4_button = tk.Button(move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move4"], command = partial(self.gesture_screen, "move4"), height = 4, width = 50, bg="#ffcc03")
             move_label.pack()
             move1_button.pack(pady=10)
             move2_button.pack(pady=10)
@@ -517,50 +519,50 @@ class Battle:
             self.stop_listening = self.rec.listen_in_background(self.mic, self.voice_callback, 2)
         else:
             img_2 = ImageTk.PhotoImage(Image.open("change_pokemon.png"))
-            change_label = tk.Label(self.move_frame, image = img_2, bg = "#34cfeb")
+            change_label = tk.Label(move_frame, image = img_2, bg = "#34cfeb")
             change_label.photo = img_2
             change_label.pack()
 
         user_pokemon_name = self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("name")]
         userteam_string = self.user.team_df.loc[:, ["name", "curr_hp"]].to_string(index=False)
         userteam_string = userteam_string.replace(user_pokemon_name, "**" + user_pokemon_name)
-        userteam_label = tk.Label(self.move_frame, text="\nYour team: \n{}\n".format(userteam_string), bg = "#34cfeb", font=("Arial", 30), anchor="n")
+        userteam_label = tk.Label(move_frame, text="\nYour team: \n{}\n".format(userteam_string), bg = "#34cfeb", font=("Arial", 30), anchor="n")
         opp_pokemon_name = self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("name")]
         oppteam_string = self.opp_user.team_df.loc[:, ["name", "curr_hp"]].to_string(index=False)
         oppteam_string = oppteam_string.replace(opp_pokemon_name, "**" + opp_pokemon_name)
-        oppteam_label = tk.Label(self.move_frame, text="\nOpponent team: \n{}\n".format(oppteam_string), bg = "#34cfeb", font=("Arial", 30), anchor="n")
-        change_button = tk.Button(self.move_frame, text="Change pokEEmon", command = self.choose_screen, height = 4, width = 50, bg="#ffcc03")
+        oppteam_label = tk.Label(move_frame, text="\nOpponent team: \n{}\n".format(oppteam_string), bg = "#34cfeb", font=("Arial", 30), anchor="n")
+        change_button = tk.Button(move_frame, text="Change pokEEmon", command = self.choose_screen, height = 4, width = 50, bg="#ffcc03")
         change_button.pack(pady = 30)
-        quit_button = tk.Button(self.move_frame, text="Quit", command = partial(self.quit, self.move_frame), height = 4, width = 50, bg="#ffcc03")
+        quit_button = tk.Button(move_frame, text="Quit", command = self.quit, height = 4, width = 50, bg="#ffcc03")
         quit_button.pack(pady = 30)
         userteam_label.pack(side=tk.LEFT, padx = 10)
         oppteam_label.pack(side=tk.LEFT, padx = 10)
 
 
-        self.move_frame.pack()
+        move_frame.pack()
+        self.curr_frame = move_frame
 
-
-    def choose_screen(self, prev_frame = None):
+    def choose_screen(self):
         winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
-        if self.move_frame:
-            self.move_frame.pack_forget()
-        if self.choose_frame:
-            self.choose_frame.destroy()
+        if self.curr_frame:
+            self.curr_frame.destroy()
+
         if self.stop_listening is not None:
             self.stop_listening(wait_for_stop=False)
             self.stop_listening = None
 
-        self.choose_frame = tk.Frame(self.window, bg = "#34cfeb")
+        choose_frame = tk.Frame(self.window, bg = "#34cfeb")
         img = ImageTk.PhotoImage(Image.open("choose_pokemon_img.png"))
-        choose_label = tk.Label(self.choose_frame, image = img, bg = "#34cfeb")
+        choose_label = tk.Label(choose_frame, image = img, bg = "#34cfeb")
         choose_label.photo = img
         choose_label.pack()
         user_pokemon = self.user.team_df.loc[:,["name","curr_hp"]]
         for row in user_pokemon.itertuples():
             if row.curr_hp > 0:
-                pokemon_button = tk.Button(self.choose_frame, text=row.name, command = partial(self.sel_pokemon, row.Index), height=6, width=40, bg = "#ffcc03")
+                pokemon_button = tk.Button(choose_frame, text=row.name, command = partial(self.sel_pokemon, row.Index), height=6, width=40, bg = "#ffcc03")
                 pokemon_button.pack(pady=10)
-        self.choose_frame.pack()
+        choose_frame.pack()
+        self.curr_frame = choose_frame
 
 class User:
     def __init__(self, username = None):
@@ -674,7 +676,8 @@ class Game:
                 self.opp_user.username = msg[1]
                 self.opp_user.team_df = pd.read_csv(io.StringIO(msg[4]), sep='\s+')
                 self.battle = Battle(self.user, self.request_num, self.opp_user, self.window, self.client, self.home_screen, self.id)
-                self.battle.wait_screen(self.response_frame)
+                self.response_frame.pack_forget()
+                self.battle.wait_screen()
             else:
                 print("Battle declined by: " + msg[1])
                 self.client.unsubscribe("ece180d/pokEEmon/" + self.user.username + "/response")
@@ -1083,7 +1086,8 @@ class Game:
         self.client.unsubscribe("ece180d/pokEEmon/" + self.user.username + "/cancel")
         print("Unsubscribed from " + "ece180d/pokEEmon/" + self.user.username + "/cancel")
         self.battle = Battle(self.user, self.request_num, self.opp_user, self.window, self.client, self.home_screen, self.id)
-        self.battle.move_screen(self.receive_frame)
+        self.receive_frame.pack_forget()
+        self.battle.move_screen()
 
     def decline_request(self, opp_username):
         print("Declined game with: " + opp_username)
