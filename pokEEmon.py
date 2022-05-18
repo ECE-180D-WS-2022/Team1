@@ -945,14 +945,14 @@ class Game:
             tk.Button(self.train_frame_begin, text = "Back", command = partial(self.home_screen, self.train_frame_begin), height = 2, width = 15, bg="#ffcc03", font = f).pack(pady=10)
         self.train_frame_begin.pack()
 
-    def train_screen(self, working_pokemon):
+    def train_screen(self, pokemon_name):
         winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
         '''
         Training that starts after pokemon is selected through having 2 windows,
         one of the camera and one of the pose to be matched.
         '''
         cap = cv2.VideoCapture(0)
-        self.working_pokemen = working_pokemon
+        self.working_pokemon = pokemon_name
         self.train_frame_begin.pack_forget()
         if self.train_frame:
             self.train_frame.destroy()
@@ -962,6 +962,11 @@ class Game:
         tk.Button(self.train_frame, text="Switch Pokemon", command = partial(self.train_screen_begin, self.train_frame, cap), height = 2, width = 20, bg="#ffcc03").pack(pady=10)
 
         self.desired_pose = self.choose_pose()
+
+        xp_label = tk.Label(self.train_frame, bg = "#34cfeb")
+        xp = self.user.team_df.loc[self.user.team_df["name"]==pokemon_name, "xp_accumulated"].values[0]
+        xp_label.config(text=f"Current XP of {pokemon_name}: {xp}", font=("Arial", 25))
+        xp_label.pack()
 
         desired_pose_label = tk.Label(self.train_frame, bg = "#34cfeb")
         desired_pose_label.config(text = f"Match the pose of: {self.desired_pose}", font=("Arial", 25))
@@ -1021,6 +1026,8 @@ class Game:
 
                     self.desired_pose = self.choose_pose()
                     desired_pose_label.config(text = f"Match the pose of: {self.desired_pose}")
+                    xp = self.user.team_df.loc[self.user.team_df["name"]==self.working_pokemon, "xp_accumulated"].values[0]
+                    xp_label.config(text=f"Current XP of {self.working_pokemon}: {xp}", font=("Arial", 25))
 
                 cv2image= cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
                 img = Image.fromarray(cv2image)
