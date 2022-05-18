@@ -8,6 +8,7 @@ import io
 import time
 import pandas as pd
 import tkinter as tk
+import tkinter.font as tkfont
 from functools import partial
 import random
 import copy
@@ -233,7 +234,7 @@ class Battle:
 
         if not self.singleplayer:
             quit_msg = "quit,{},{}".format(self.user.username, self.battle_id)
-            self.client.publish("ece180d/pokEEmon/" + self.opp_user.username + "/quit", move_msg)
+            self.client.publish("ece180d/pokEEmon/" + self.opp_user.username + "/quit", quit_msg)
 
         self.gameover_screen(False,  prev_frame)
 
@@ -709,7 +710,7 @@ class Game:
 
             photo_label = tk.Label(self.home_frame, image = img, bg = "#34cfeb")
             photo_label.photo = img
-            f = tk.font.Font(size=40)
+            f = tkfont.Font(size=40)
             battle_button = tk.Button(self.home_frame, text = "Battle", command = partial(self.choose_opp_screen, self.home_frame), height = 2, width = 15, bg="#ffcc03",font=f)
             train_button = tk.Button(self.home_frame, text = "Train", command = partial(self.train_screen_begin, self.home_frame), height = 2, width = 15, bg = "#ffcc03", font=f)
             tutorial_button = tk.Button(self.home_frame, text = "Tutorial", command = partial(self.tutorial_screen, self.home_frame), height = 2, width = 15, bg="#ffcc03", font=f)
