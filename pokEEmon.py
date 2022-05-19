@@ -430,6 +430,9 @@ class Battle:
             self.window.after(3000, self.bot_move)
 
     def gameover_screen(self, won):
+        if self.gameover:
+            return
+
         self.gameover = True
 
         if not self.singleplayer:
@@ -611,7 +614,7 @@ class Battle:
         opp_pokemon_img_label.pack()
         move_frame.pack(side=tk.LEFT)
         self.curr_frame = move_frame
-        
+
     def choose_screen(self):
         winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
         if self.curr_frame:
