@@ -592,7 +592,7 @@ class Battle:
             user_pokemon_img_path = "sprites/"+str(user_pokemon_id)+".png"
         else:
             user_pokemon_img_path = "sprites/1.png"
-        if os.pathisfile("sprites/"+str(opp_pokemon_id)+".png"):
+        if os.path.isfile("sprites/"+str(opp_pokemon_id)+".png"):
             opp_pokemon_img_path = "sprites/"+str(opp_pokemon_id)+".png"
         else:
             opp_pokemon_img_path = "sprites/1.png"
@@ -611,6 +611,7 @@ class Battle:
         opp_pokemon_img_label.pack()
         move_frame.pack(side=tk.LEFT)
         self.curr_frame = move_frame
+        
     def choose_screen(self):
         winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
         if self.curr_frame:
