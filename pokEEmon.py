@@ -583,10 +583,34 @@ class Battle:
         userteam_label.pack(side=tk.LEFT, padx = 10)
         oppteam_label.pack(side=tk.LEFT, padx = 10)
 
+        # Adding Sprites
+        # user Pokemon
+        pokemon_df = pd.read_csv("pokemon_db/pokemon_names.csv")
+        user_pokemon_id = pokemon_df.loc[pokemon_df["identifier"]==user_pokemon_name.lower()]["id"].item()
+        opp_pokemon_id = pokemon_df.loc[pokemon_df["identifier"]==opp_pokemon_name.lower()]["id"].item()
+        if os.path.isfile("sprites/"+str(user_pokemon_id)+".png"):
+            user_pokemon_img_path = "sprites/"+str(user_pokemon_id)+".png"
+        else:
+            user_pokemon_img_path = "sprites/1.png"
+        if os.pathisfile("sprites/"+str(opp_pokemon_id)+".png"):
+            opp_pokemon_img_path = "sprites/"+str(opp_pokemon_id)+".png"
+        else:
+            opp_pokemon_img_path = "sprites/1.png"
 
-        move_frame.pack()
+
+        user_pokemon_img = ImageTk.PhotoImage(Image.open(user_pokemon_img_path))
+        user_pokemon_img_label = tk.Label(move_frame, image = user_pokemon_img)
+        user_pokemon_img_label.photo = user_pokemon_img
+        user_pokemon_img_label.pack()
+        move_frame.pack(side=tk.LEFT)
         self.curr_frame = move_frame
 
+        opp_pokemon_img = ImageTk.PhotoImage(Image.open(opp_pokemon_img_path))
+        opp_pokemon_img_label = tk.Label(move_frame, image = opp_pokemon_img)
+        opp_pokemon_img_label.photo = opp_pokemon_img
+        opp_pokemon_img_label.pack()
+        move_frame.pack(side=tk.LEFT)
+        self.curr_frame = move_frame
     def choose_screen(self):
         winsound.PlaySound('click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
         if self.curr_frame:
