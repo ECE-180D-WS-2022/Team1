@@ -96,8 +96,6 @@ class Battle:
         self.home = home
         self.curr_pokemon = 0
         self.opp_pokemon = 0
-        self.mic = None
-        self.rec = None
         self.stop_listening = None
         self.id = id
         self.movename = None
@@ -105,6 +103,11 @@ class Battle:
         self.singleplayer = singleplayer
         self.gameover = False
         self.curr_frame = None
+        print("Setting up mic and receiver for speech recognition")
+        self.mic = sr.Microphone()
+        self.rec = sr.Recognizer()
+        with self.mic as source:
+            self.rec.adjust_for_ambient_noise(source)
 
     def rcv_gesture_mqtt(self, client, userdata, message):
         print("Received move message")
