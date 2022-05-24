@@ -33,11 +33,15 @@ def learn_moves(pk_df, lvl):
 
     ans = pk_df.copy()
 
+    #find pokemon ID number
+    dictionary = pd.read_csv("data/new_pokemon.csv", index_col = "name")
+    id_num = dictionary.loc[(ans.loc["name"]).lower(), "id"]
+
     #if level learnset is not empty
-    if not learnset[ans.loc["id"] - 1][lvl] :
+    if not learnset[id_num - 1][lvl] :
         #find name of move to be learned
         move_learned = pd.read_csv("data/moves.csv")
-        move_learned = move_learned.loc[learnset[ans.loc["id"] - 1][lvl][0] == moves["id"]]
+        move_learned = move_learned.loc[learnset[id_num][lvl][0] == move_learned["id"]]
 
         #check if there are empty move slots
         if pd.isnull(ans.loc["move2"]):
@@ -53,8 +57,11 @@ def learn_moves(pk_df, lvl):
             return ans
 
         #if no empty move slots, just randomly replace one
-        index = randrange(4) + 10
-        ans.iat[index] = move_learned.at["identifier"]
+        index = randrange(4) + 1
+        moveIdentifier = "move" + string(index)
+
+        ans.at[moveIdentifier] = move_learned.at["identifier"]
+
 
     return ans
 
