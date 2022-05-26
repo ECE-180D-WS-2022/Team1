@@ -418,18 +418,45 @@ class Battle:
         wait_label = tk.Label(wait_frame, image=wait_img, bg = "#34cfeb")
         wait_label.photo = wait_img
         quit_button = tk.Button(wait_frame, text="Quit", command = self.quit, height = 4, width = 50, bg="#ffcc03")
+        
         user_pokemon_name = self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("name")]
-        userteam_string = self.user.team_df.loc[:, ["name", "curr_hp"]].to_string(index=False)
-        userteam_string = userteam_string.replace(user_pokemon_name, "**" + user_pokemon_name)
-        userteam_label = tk.Label(wait_frame, text="\nYour team: \n{}\n".format(userteam_string), bg = "#34cfeb", font=("Arial", 30))
+        user_pokemon_hp = self.user.team_df.loc[self.user.team_df.name==user_pokemon_name, "curr_hp"].item()
+        userteam_label = tk.Label(wait_frame, text=f"Your Pokemon: {user_pokemon_name} \n HP: {user_pokemon_hp}", bg = "#34cfeb", font=("Arial", 30), anchor="n")
+        
         opp_pokemon_name = self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("name")]
-        oppteam_string = self.opp_user.team_df.loc[:, ["name", "curr_hp"]].to_string(index=False)
-        oppteam_string = oppteam_string.replace(opp_pokemon_name, "**" + opp_pokemon_name)
-        oppteam_label = tk.Label(wait_frame, text="\nOpponent team: \n{}\n".format(oppteam_string), bg = "#34cfeb", font=("Arial", 30))
-        wait_label.pack(pady = 5)
-        quit_button.pack(pady = 30)
-        userteam_label.pack()
-        oppteam_label.pack()
+        opp_pokemon_hp = self.opp_user.team_df.loc[self.opp_user.team_df.name==opp_pokemon_name, "curr_hp"].item()
+        oppteam_label = tk.Label(wait_frame, text=f"Opponent Pokemon: {opp_pokemon_name} \n HP: {opp_pokemon_hp}", bg = "#34cfeb", font=("Arial", 30), anchor="n")
+        
+        wait_label.grid(row = 0, column = 1, pady = 20)
+        quit_button.grid(row = 1, column = 1, pady = 20)
+        userteam_label.grid(row = 2, column = 0, pady = 20)
+        oppteam_label.grid(row = 2, column = 2, pady = 20)
+
+        # Adding Sprites
+        # user Pokemon
+        pokemon_df = pd.read_csv("pokemon_db/pokemon_names.csv")
+        user_pokemon_id = pokemon_df.loc[pokemon_df["identifier"]==user_pokemon_name.lower()]["id"].item()
+        opp_pokemon_id = pokemon_df.loc[pokemon_df["identifier"]==opp_pokemon_name.lower()]["id"].item()
+        if os.path.isfile("sprites/"+str(user_pokemon_id)+".png"):
+            user_pokemon_img_path = "sprites/"+str(user_pokemon_id)+".png"
+        else:
+            user_pokemon_img_path = "sprites/1.png"
+        if os.path.isfile("sprites/"+str(opp_pokemon_id)+".png"):
+            opp_pokemon_img_path = "sprites/"+str(opp_pokemon_id)+".png"
+        else:
+            opp_pokemon_img_path = "sprites/1.png"
+
+
+        user_pokemon_img = ImageTk.PhotoImage(Image.open(user_pokemon_img_path))
+        user_pokemon_img_label = tk.Label(wait_frame, image = user_pokemon_img)
+        user_pokemon_img_label.photo = user_pokemon_img
+        user_pokemon_img_label.grid(row=3, column=0)
+
+        opp_pokemon_img = ImageTk.PhotoImage(Image.open(opp_pokemon_img_path))
+        opp_pokemon_img_label = tk.Label(wait_frame, image = opp_pokemon_img)
+        opp_pokemon_img_label.photo = opp_pokemon_img
+        opp_pokemon_img_label.grid(row=3,column=2)
+
         wait_frame.pack()
         self.curr_frame = wait_frame
 
@@ -454,7 +481,8 @@ class Battle:
 
         if self.curr_frame:
             self.curr_frame.destroy()
-
+        
+        f = tkfont.Font(size=40)
         gameover_frame = tk.Frame(self.window, bg = "#34cfeb")
         if won:
             won_img = ImageTk.PhotoImage(Image.open("won_img.png"))
@@ -465,7 +493,7 @@ class Battle:
             gameover_label = tk.Label(gameover_frame, image=lost_img, bg = "#34cfeb")
             gameover_label.photo = lost_img
 
-        home_button = tk.Button(gameover_frame, text="Home", command = partial(self.home, gameover_frame), height = 6, width = 70, bg="#ffcc03")
+        home_button = tk.Button(gameover_frame, text="Home", command = partial(self.home, gameover_frame), height = 2, width = 15, bg="#ffcc03",font=f)
 
         gameover_label.pack(pady = 5)
         home_button.pack(pady = 5)
@@ -561,11 +589,11 @@ class Battle:
             move2_button = tk.Button(move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move2"], command = partial(self.gesture_screen, "move2"), height = 2, width = 15, bg="#ffcc03", font=f)
             move3_button = tk.Button(move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move3"], command = partial(self.gesture_screen, "move3"), height = 2, width = 15, bg="#ffcc03", font=f)
             move4_button = tk.Button(move_frame, text=self.user.team_df.iloc[self.curr_pokemon]["move4"], command = partial(self.gesture_screen, "move4"), height = 2, width = 15, bg="#ffcc03", font=f)
-            move_label.grid(row=0, column=1)
-            move1_button.grid(row=1, column=1)
-            move2_button.grid(row=2, column=1)
-            move3_button.grid(row=3, column=1)
-            move4_button.grid(row=4, column=1)
+            move_label.grid(row=0, column=1, pady = 10)
+            move1_button.grid(row=1, column=1, pady = 5)
+            move2_button.grid(row=2, column=1, pady = 5)
+            move3_button.grid(row=3, column=1, pady = 5)
+            move4_button.grid(row=4, column=1, pady = 5)
 
             if self.mic is None:
                 print("Setting up mic and receiver for speech recognition")
@@ -579,25 +607,28 @@ class Battle:
             img_2 = ImageTk.PhotoImage(Image.open("change_pokemon.png"))
             change_label = tk.Label(move_frame, image = img_2, bg = "#34cfeb")
             change_label.photo = img_2
-            change_label.grid(row = 5, column=1)
+            change_label.grid(row = 5, column=1, pady = 5)
 
         user_pokemon_name = self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("name")]
-        userteam_string = self.user.team_df.loc[:, ["name", "curr_hp"]].to_string(index=False)
-        userteam_string = userteam_string.replace(user_pokemon_name, "**" + user_pokemon_name)
+        user_pokemon_hp = self.user.team_df.loc[self.user.team_df.name==user_pokemon_name, "curr_hp"].item()
+        # userteam_string = self.user.team_df.loc[:, ["name", "curr_hp"]].to_string(index=False)
+        # userteam_string = userteam_string.replace(user_pokemon_name, "**" + user_pokemon_name)
         # userteam_label = tk.Label(move_frame, text="\nYour team: \n{}\n".format(userteam_string), bg = "#34cfeb", font=("Arial", 30), anchor="n")
-        userteam_label = tk.Label(move_frame, text=f"Your Pokemon: {user_pokemon_name}", bg = "#34cfeb", font=("Arial", 30), anchor="n")
+        userteam_label = tk.Label(move_frame, text=f"Your Pokemon: {user_pokemon_name} \n HP: {user_pokemon_hp}", bg = "#34cfeb", font=("Arial", 30), anchor="n")
 
         opp_pokemon_name = self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("name")]
-        oppteam_string = self.opp_user.team_df.loc[:, ["name", "curr_hp"]].to_string(index=False)
-        oppteam_string = oppteam_string.replace(opp_pokemon_name, "**" + opp_pokemon_name)
+        opp_pokemon_hp = self.opp_user.team_df.loc[self.opp_user.team_df.name==opp_pokemon_name, "curr_hp"].item()
+        # oppteam_string = self.opp_user.team_df.loc[:, ["name", "curr_hp"]].to_string(index=False)
+        # oppteam_string = oppteam_string.replace(opp_pokemon_name, "**" + opp_pokemon_name)
         # oppteam_label = tk.Label(move_frame, text="\nOpponent team: \n{}\n".format(oppteam_string), bg = "#34cfeb", font=("Arial", 30), anchor="n")
-        oppteam_label = tk.Label(move_frame, text=f"Opponent Pokemon: {opp_pokemon_name}", bg = "#34cfeb", font=("Arial", 30), anchor="n")
+        oppteam_label = tk.Label(move_frame, text=f"Opponent Pokemon: {opp_pokemon_name} \n HP: {opp_pokemon_hp}", bg = "#34cfeb", font=("Arial", 30), anchor="n")
+        
         change_button = tk.Button(move_frame, text="Change pokEEmon", command = self.choose_screen, height = 2, width = 15, bg="#ffcc03", font=f)
-        change_button.grid(row=6, column=1)
+        change_button.grid(row=6, column=1, pady = 5)
         quit_button = tk.Button(move_frame, text="Quit", command = self.quit, height = 2, width = 15, bg="#ffcc03", font=f)
-        quit_button.grid(row=6, column=1)
-        userteam_label.grid(row=8, column = 0)
-        oppteam_label.grid(row=8, column = 2)
+        quit_button.grid(row=6, column=1, pady = 5)
+        userteam_label.grid(row=8, column = 0, pady = 5)
+        oppteam_label.grid(row=8, column = 2, pady = 5)
 
         # Adding Sprites
         # user Pokemon
