@@ -24,6 +24,7 @@ import winsound
 import math
 from level_up import import_learnset
 import pronouncing
+from pygame import mixer
 #import moves_new as mv
 
 movegesture = {"Thunderbolt" : "slash", "Tackle" : "block", "Water-gun" : "whip", "Flamethrower" : "scratch"}
@@ -116,6 +117,9 @@ class Battle:
         self.rec = sr.Recognizer()
         with self.mic as source:
             self.rec.adjust_for_ambient_noise(source)
+        mixer.music.stop()
+        mixer.music.load("battle song.mp3")
+        mixer.music.play(-1)
 
     def rcv_gesture_mqtt(self, client, userdata, message):
         print("Received move message")
@@ -418,15 +422,15 @@ class Battle:
         wait_label = tk.Label(wait_frame, image=wait_img, bg = "#34cfeb")
         wait_label.photo = wait_img
         quit_button = tk.Button(wait_frame, text="Quit", command = self.quit, height = 4, width = 50, bg="#ffcc03")
-        
+
         user_pokemon_name = self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("name")]
         user_pokemon_hp = self.user.team_df.loc[self.user.team_df.name==user_pokemon_name, "curr_hp"].item()
         userteam_label = tk.Label(wait_frame, text=f"Your Pokemon: {user_pokemon_name} \n HP: {user_pokemon_hp}", bg = "#34cfeb", font=("Arial", 30), anchor="n")
-        
+
         opp_pokemon_name = self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("name")]
         opp_pokemon_hp = self.opp_user.team_df.loc[self.opp_user.team_df.name==opp_pokemon_name, "curr_hp"].item()
         oppteam_label = tk.Label(wait_frame, text=f"Opponent Pokemon: {opp_pokemon_name} \n HP: {opp_pokemon_hp}", bg = "#34cfeb", font=("Arial", 30), anchor="n")
-        
+
         wait_label.grid(row = 0, column = 1, pady = 20)
         quit_button.grid(row = 1, column = 1, pady = 20)
         userteam_label.grid(row = 2, column = 0, pady = 20)
@@ -468,6 +472,9 @@ class Battle:
             return
 
         self.gameover = True
+        mixer.music.stop()
+        mixer.music.load("menu music.mp3")
+        mixer.music.play(-1)
 
         if not self.singleplayer:
             self.client.unsubscribe("ece180d/pokEEmon/" + self.id)
@@ -481,7 +488,7 @@ class Battle:
 
         if self.curr_frame:
             self.curr_frame.destroy()
-        
+
         f = tkfont.Font(size=40)
         gameover_frame = tk.Frame(self.window, bg = "#34cfeb")
         if won:
@@ -622,7 +629,7 @@ class Battle:
         # oppteam_string = oppteam_string.replace(opp_pokemon_name, "**" + opp_pokemon_name)
         # oppteam_label = tk.Label(move_frame, text="\nOpponent team: \n{}\n".format(oppteam_string), bg = "#34cfeb", font=("Arial", 30), anchor="n")
         oppteam_label = tk.Label(move_frame, text=f"Opponent Pokemon: {opp_pokemon_name} \n HP: {opp_pokemon_hp}", bg = "#34cfeb", font=("Arial", 30), anchor="n")
-        
+
         change_button = tk.Button(move_frame, text="Change pokEEmon", command = self.choose_screen, height = 2, width = 15, bg="#ffcc03", font=f)
         change_button.grid(row=6, column=1, pady = 5)
         quit_button = tk.Button(move_frame, text="Quit", command = self.quit, height = 2, width = 15, bg="#ffcc03", font=f)
@@ -970,7 +977,7 @@ class Game:
 
         self.client.unsubscribe("ece180d/pokEEmon/" + self.user.username + "/response")
         print("Unsubscribed from " + "ece180d/pokEEmon/" + self.user.username + "/response")
-        
+
         f = tk.font.Font(size=30)
         self.request_frame = tk.Frame(self.window, bg = "#34cfeb")
         request_img = ImageTk.PhotoImage(Image.open("request_img.png"))
@@ -1067,6 +1074,9 @@ class Game:
             prev_screen.pack_forget()
         if camera:
             camera.release()
+            mixer.music.stop()
+            mixer.music.load("menu music.mp3")
+            mixer.music.play(-1)
 
         if not self.train_frame_begin:
             f = tk.font.Font(size=30)
@@ -1087,6 +1097,10 @@ class Game:
         Training that starts after pokemon is selected through having 2 windows,
         one of the camera and one of the pose to be matched.
         '''
+        mixer.music.stop()
+        mixer.music.load("train music.mp3")
+        mixer.music.play(-1)
+
         cap = cv2.VideoCapture(0)
         self.working_pokemon = pokemon_name
         self.train_frame_begin.pack_forget()
@@ -1221,6 +1235,9 @@ class Game:
 
     def start_game(self):
         print("Starting game")
+        mixer.init()
+        mixer.music.load("menu music.mp3")
+        mixer.music.play(-1)
         self.window.mainloop()
 
     def exit_game(self):
