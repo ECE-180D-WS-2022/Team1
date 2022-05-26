@@ -307,9 +307,9 @@ class Battle:
 
     def calc_damage(self, movename, random_mult, attack_pk, receive_pk):
         random_mult = float(random_mult) * 0.01  #random multiplier from 0.85 to 1
-        multiplier = self.find_effectiveness(attack_pk["type"], receive_pk["type"])
+        multiplier = self.find_effectiveness(self.moves_df.loc[self.moves_df["identifier"] == movename.lower()]["type"].values[0], receive_pk["type"])
         special = int(self.moves_df.loc[self.moves_df["identifier"] == movename.lower()]["damage_class_id"])
-        if (attack_pk["type"] == receive_pk["type"]): #implement same type attack bonus
+        if (attack_pk["type"] == self.moves_df.loc[self.moves_df["identifier"] == movename.lower()]["type"].values[0]): #implement same type attack bonus
             stab = 1.5
         else:
             stab = 1
