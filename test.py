@@ -1,10 +1,18 @@
-import pokEEmon as pk
-import pandas as pd
+import tkinter as tk
+from PIL import Image, ImageTk
+from pygame import mixer
 
-
-data = pd.read_csv("data/users/fred/team.csv")
-print(data)
-for i in range(data.shape[0]):
-    data.loc[i] = pk.level_up(data.loc[i], 5000)
-
-print(data)
+win = tk.Tk()
+win.configure(bg="#34cfeb")
+frame = tk.Frame(win, bg = "#34cfeb")
+im = Image.open("sprites/25.png")
+photoimage = ImageTk.PhotoImage(im.convert("RGBA"))
+canvas = tk.Canvas(frame, bg = "#34cfeb", width=photoimage.width(), height=photoimage.height())
+canvas.pack()
+canvas.create_image(0,0, image=photoimage, anchor=tk.NW)
+frame.pack()
+print("Hello")
+mixer.init()
+mixer.music.load("menu music.mp3")
+mixer.music.play(-1)
+win.mainloop()

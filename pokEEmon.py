@@ -633,7 +633,7 @@ class Battle:
         change_button = tk.Button(move_frame, text="Change pokEEmon", command = self.choose_screen, height = 2, width = 15, bg="#ffcc03", font=f)
         change_button.grid(row=6, column=1, pady = 5)
         quit_button = tk.Button(move_frame, text="Quit", command = self.quit, height = 2, width = 15, bg="#ffcc03", font=f)
-        quit_button.grid(row=6, column=1, pady = 5)
+        quit_button.grid(row=7, column=1, pady = 5)
         userteam_label.grid(row=8, column = 0, pady = 5)
         oppteam_label.grid(row=8, column = 2, pady = 5)
 
