@@ -45,6 +45,7 @@ class Game:
         self.request_num = None
         self.id = id
         self.battle = None
+        self.learnset = ut.import_learnset()
 
 
     def connect_mqtt(self):
@@ -110,7 +111,7 @@ class Game:
                 self.opp_user = usr.User()
                 self.opp_user.username = msg[1]
                 self.opp_user.team_df = pd.read_csv(io.StringIO(msg[4]), sep='\s+')
-                self.battle = bt.Battle(self.user, self.request_num, self.opp_user, self.window, self.client, self.home_screen, self.id)
+                self.battle = bt.Battle(self.user, self.request_num, self.opp_user, self.window, self.client, self.home_screen, self.id, self.learnset)
                 self.response_frame.pack_forget()
                 self.battle.wait_screen()
             else:
@@ -359,13 +360,13 @@ class Game:
 
         for i in range(self.opp_user.team_df.shape[0]):
             xp_boost = max(0, random.randint(total_xp // num_pk - 2000, total_xp // num_pk + 1000))
-            self.opp_user.team_df.loc[i] = ut.level_up(self.opp_user.team_df.loc[i], xp_boost, None)
+            self.opp_user.team_df.loc[i] = ut.bot_level_up(self.opp_user.team_df.loc[i], xp_boost, self.learnset)
 
         print("Generated opponent team:")
         print(self.opp_user.team_df)
 
 
-        self.battle = bt.Battle(self.user, None, self.opp_user, self.window, self.client, self.home_screen, self.id, True)
+        self.battle = bt.Battle(self.user, None, self.opp_user, self.window, self.client, self.home_screen, self.id, self.learnset, True)
         if random.randint(1, 1):
             self.battle.move_screen()
         else:
@@ -491,7 +492,7 @@ class Game:
                     print("matched pose!")
                     #### LEVELING UP ####
                     for i in range(self.user.team_df.shape[0]):
-                        self.user.team_df.loc[i] = ut.level_up(self.user.team_df.loc[i], 20, None)
+                        self.user.team_df.loc[i] = ut.level_up(self.user.team_df.loc[i], 20, self.learnset)
 
                     print("Writing updated team to {}".format(self.user.path + "/team.csv"))
                     print(self.user.team_df)
@@ -545,7 +546,7 @@ class Game:
         self.client.publish("ece180d/pokEEmon/" + opp_username + "/response", response_msg)
         self.client.unsubscribe("ece180d/pokEEmon/" + self.user.username + "/cancel")
         print("Unsubscribed from " + "ece180d/pokEEmon/" + self.user.username + "/cancel")
-        self.battle = bt.Battle(self.user, self.request_num, self.opp_user, self.window, self.client, self.home_screen, self.id)
+        self.battle = bt.Battle(self.user, self.request_num, self.opp_user, self.window, self.client, self.home_screen, self.id, self.learnset)
         self.receive_frame.pack_forget()
         self.battle.move_screen()
 
