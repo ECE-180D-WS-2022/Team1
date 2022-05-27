@@ -1,3 +1,4 @@
-"name","type","hp","attack","defense","special_attack","special_defense","speed","xp_reward","move1","move2","move3","move4","xp_accumulated","level"
-"Pikachu","Electric",31,20,18,19,19,28,82,"Thunderbolt","Tackle","Water-gun","Flamethrower",9566,10
-"Charizard","Fire",40,26,25,31,26,29,82,"Thunderbolt","Tackle","Water-gun","Flamethrower",9566,10
+"id","name","xp_reward","type","hp","attack","defense","special_attack","special_defense","speed","move1","move2","move3","move4","xp_accumulated","level"
+460,"abomasnow",173,"grass",13,7,7,7,7,6,"ice-punch","razor-leaf","icy-wind","powder-snow",0,1
+886,"drakloak",144,"dragon",12,7,6,6,6,7,"astonish","quick-attack","infestation","bite",0,1
+386,"deoxys-normal",270,"psychic",12,8,6,8,6,8,"wrap","","","",0,1
