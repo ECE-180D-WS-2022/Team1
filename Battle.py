@@ -51,6 +51,7 @@ class Battle:
         self.gesturelist = ["slash", "block", "whip", "scratch"]
         mixer.music.stop()
         mixer.music.load("sounds/battle song.mp3")
+        mixer.music.set_volume(0.25)
         mixer.music.play(-1)
 
 
@@ -92,10 +93,10 @@ class Battle:
                 self.user.gamestats_df.to_csv(self.user.path + "/gamestats.csv", index=False, quoting=csv.QUOTE_NONNUMERIC)
                 self.gameover_screen(False)
             else:
-                self.move_screen("{}'s {} played {}".format(self.opp_user.username.capitalize(), pokeemon_name, movename.capitalize()))
+                self.move_screen("{}'s {} played {}".format(self.opp_user.username, pokeemon_name.capitalize(), movename.capitalize()))
         elif msg and msg[0] == "change" and int(msg[2]) == self.battle_id:
             self.opp_pokemon = int(msg[3])
-            self.wait_screen("{} changed their pokEEmon to {}".format(self.opp_user.username.capitalize(), self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("name")].capitalize()), self.curr_frame)
+            self.wait_screen("{} changed their PokEEmon to {}".format(self.opp_user.username, self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("name")].capitalize()), self.curr_frame)
         elif msg and msg[0] == "quit" and int(msg[2]) == self.battle_id:
             print("You won")
             self.user.gamestats_df["games_played"] += 1
@@ -381,9 +382,15 @@ class Battle:
         if self.gameover:
             return
 
+        if won:
+            winsound.PlaySound('sounds/win chime.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
+        else:
+            winsound.PlaySound('sounds/lose chime.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
+
         self.gameover = True
         mixer.music.stop()
         mixer.music.load("sounds/menu music.mp3")
+        mixer.music.set_volume(0.25)
         mixer.music.play(-1)
 
         if not self.singleplayer:
@@ -457,7 +464,7 @@ class Battle:
             self.user.gamestats_df.to_csv(self.user.path + "/gamestats.csv", index=False, quoting=csv.QUOTE_NONNUMERIC)
             self.gameover_screen(False)
         else:
-            self.move_screen(move_update = "{}'s {} played {}".format(self.opp_user.username.capitalize(), pokeemon_name, best_move))
+            self.move_screen(move_update = "{}'s {} played {}".format(self.opp_user.username, pokeemon_name.capitalize(), best_move.capitalize()))
 
 
     def move_screen(self, move_update = None, prev_move_frame = None):

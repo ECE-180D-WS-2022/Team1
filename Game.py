@@ -129,6 +129,7 @@ class Game:
 
         if not mixer.music.get_busy():
             mixer.music.load("sounds/menu music.mp3")
+            mixer.music.set_volume(0.25)
             mixer.music.play(-1)
 
         if prev_frame:
@@ -397,6 +398,7 @@ class Game:
             camera.release()
             mixer.music.stop()
             mixer.music.load("sounds/menu music.mp3")
+            mixer.music.set_volume(0.25)
             mixer.music.play(-1)
 
         if not self.train_frame_begin:
@@ -420,6 +422,7 @@ class Game:
         '''
         mixer.music.stop()
         mixer.music.load("sounds/train music.mp3")
+        mixer.music.set_volume(0.25)
         mixer.music.play(-1)
 
         cap = cv2.VideoCapture(0)
