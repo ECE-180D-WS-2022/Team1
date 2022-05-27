@@ -115,6 +115,9 @@ class Battle:
             print("Heard: " + words)
             for move in ["move1", "move2", "move3", "move4"]:
                 movename = self.user.team_df.iloc[self.curr_pokemon][move]
+                if movename != movename: # true for movename of NaN
+                    continue
+
                 if movename.replace("-", " ") in words or movename.replace("-", "") in words:
                     self.gesture_screen(move)
                     return
