@@ -24,7 +24,7 @@ from pygame import mixer
 import PkUtils as ut
 
 class Battle:
-    def __init__(self, user, battle_id, opp_user, window, client, home, id, singleplayer = False):
+    def __init__(self, user, battle_id, opp_user, window, client, home, id, learn_set, singleplayer = False):
         self.user = user
         self.user.team_df["curr_hp"] = self.user.team_df["hp"]
         self.battle_id = battle_id
@@ -43,6 +43,7 @@ class Battle:
         self.gameover = False
         self.curr_frame = None
         self.timeout_num = None
+        self.learnset = learn_set
         print("Setting up mic and receiver for speech recognition")
         self.mic = sr.Microphone()
         self.rec = sr.Recognizer()
@@ -190,7 +191,7 @@ class Battle:
             self.user.team_df.drop('curr_hp', axis=1, inplace=True)
 
             for i in range(self.user.team_df.shape[0]):
-                self.user.team_df.loc[i] = ut.level_up(self.user.team_df.loc[i], xp_reward, None)
+                self.user.team_df.loc[i] = ut.level_up(self.user.team_df.loc[i], xp_reward, self.learnset)
 
             print("Writing updated team to {}".format(self.user.path + "/team.csv"))
             print(self.user.team_df)

@@ -1,5 +1,7 @@
 import pandas as pd
 import random
+import numpy as np
+import random
 
 def import_learnset():
     print("importing learnset")
@@ -41,32 +43,36 @@ def learn_moves(pk_df, lvl, learnset):
 
     #find pokemon ID number
     dictionary = pd.read_csv("data/new_pokemon.csv", index_col = "name")
-    id_num = dictionary.loc[(ans.loc["name"]).lower(), "id"]
+    pokemon_id = ans.loc["id"]
 
     #if level learnset is not empty
-    if not learnset[id_num - 1][lvl] :
+    if learnset[pokemon_id-1][lvl] :
         #find name of move to be learned
-        move_learned = pd.read_csv("data/moves.csv")
-        move_learned = move_learned.loc[learnset[id_num][lvl][0] == move_learned["id"]]
-
+        moves = pd.read_csv("data/moves.csv")
+        #print(ans)
+        #print(pokemon_id)
+        #print(learnset[pokemon_id - 1][lvl][0])
+        move_id = learnset[pokemon_id - 1][lvl][0]
+        move_learned = moves.loc[learnset[pokemon_id-1][lvl][0] == moves["id"]]
+        #print(move_learned)
         #check if there are empty move slots
         if pd.isnull(ans.loc["move2"]):
-            ans.at["move2"] = move_learned.at["identifier"]
+            ans.at["move2"] = move_learned.at[move_id-1, "identifier"]
             return ans
 
         if pd.isnull(ans.loc["move3"]):
-            ans.at["move3"] = move_learned.at["identifier"]
+            ans.at["move3"] = move_learned.at[move_id-1, "identifier"]
             return ans
 
         if pd.isnull(ans.loc["move4"]):
-            ans.at["move4"] = move_learned.at["identifier"]
+            ans.at["move4"] = move_learned.at[move_id-1, "identifier"]
             return ans
 
         #if no empty move slots, just randomly replace one
-        index = randrange(4) + 1
-        moveIdentifier = "move" + string(index)
+        index = random.randrange(4) + 1
+        moveIdentifier = "move" + str(index)
 
-        ans.at[moveIdentifier] = move_learned.at["identifier"]
+        ans.at[moveIdentifier] = move_learned.at[move_id-1, "identifier"]
 
 
     return ans
@@ -93,6 +99,30 @@ def level_up (pk_df, xp_amt, learnset):
         ans["special_defense"] = int(((((2*basepk_df["special_defense"]) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
         ans["speed"] = int(((((2*basepk_df["speed"]) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
 
-        #ans = learn_moves(ans, lvl, learnset)
+        ans = learn_moves(ans, lvl, learnset)
+
+    return ans
+
+def bot_level_up (pk_df, xp_amt, learnset):
+    #1000 xp to level up
+    current_xp =  pk_df["xp_accumulated"]
+    current_xp += xp_amt
+    ans = pk_df.copy()
+    ans["xp_accumulated"] = current_xp
+
+    basepk_df = pd.read_csv("data/new_pokemon_withMoves.csv")
+    basepk_df = basepk_df.loc[basepk_df["name"] == pk_df["name"]]
+
+    lvl = int(current_xp) // 1000 + 1
+    ans["level"] = lvl
+    ans["hp"] = int(((((2*int(basepk_df["hp"])) + random.randrange(28,31) + 20.25) * lvl)/100) + lvl + 10)
+    ans["attack"] = int(((((2*basepk_df["attack"]) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
+    ans["defense"] = int(((((2*basepk_df["defense"]) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
+    ans["special_attack"] = int(((((2*basepk_df["special_attack"]) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
+    ans["special_defense"] = int(((((2*basepk_df["special_defense"]) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
+    ans["speed"] = int(((((2*basepk_df["speed"]) + random.randrange(28,31) + 20.25) * lvl)/100) + 5)
+
+    for i in (range(2, lvl)):
+        ans = learn_moves(ans, i, learnset)
 
     return ans
