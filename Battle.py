@@ -359,13 +359,13 @@ class Battle:
             opp_pokemon_img_path = "sprites/1.png"
 
 
-        user_pokemon_img = ImageTk.PhotoImage(Image.open(user_pokemon_img_path))
-        user_pokemon_img_label = tk.Label(wait_subframel, image = user_pokemon_img)
+        user_pokemon_img = ImageTk.PhotoImage(Image.open(user_pokemon_img_path).convert("RGBA"))
+        user_pokemon_img_label = tk.Label(wait_subframel, image = user_pokemon_img, bg = "#34cfeb")
         user_pokemon_img_label.photo = user_pokemon_img
         user_pokemon_img_label.pack()
 
-        opp_pokemon_img = ImageTk.PhotoImage(Image.open(opp_pokemon_img_path))
-        opp_pokemon_img_label = tk.Label(wait_subframer, image = opp_pokemon_img)
+        opp_pokemon_img = ImageTk.PhotoImage(Image.open(opp_pokemon_img_path).convert("RGBA"))
+        opp_pokemon_img_label = tk.Label(wait_subframer, image = opp_pokemon_img, bg = "#34cfeb")
         opp_pokemon_img_label.photo = opp_pokemon_img
         opp_pokemon_img_label.pack()
 
@@ -565,13 +565,13 @@ class Battle:
             opp_pokemon_img_path = "sprites/1.png"
 
 
-        user_pokemon_img = ImageTk.PhotoImage(Image.open(user_pokemon_img_path))
-        user_pokemon_img_label = tk.Label(move_subframel, image = user_pokemon_img)
+        user_pokemon_img = ImageTk.PhotoImage(Image.open(user_pokemon_img_path).convert("RGBA"))
+        user_pokemon_img_label = tk.Label(move_subframel, image = user_pokemon_img, bg = "#34cfeb")
         user_pokemon_img_label.photo = user_pokemon_img
         user_pokemon_img_label.pack()
 
-        opp_pokemon_img = ImageTk.PhotoImage(Image.open(opp_pokemon_img_path))
-        opp_pokemon_img_label = tk.Label(move_subframer, image = opp_pokemon_img)
+        opp_pokemon_img = ImageTk.PhotoImage(Image.open(opp_pokemon_img_path).convert("RGBA"))
+        opp_pokemon_img_label = tk.Label(move_subframer, image = opp_pokemon_img, bg = "#34cfeb")
         opp_pokemon_img_label.photo = opp_pokemon_img
         opp_pokemon_img_label.pack()
 
