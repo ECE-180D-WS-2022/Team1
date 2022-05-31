@@ -28,7 +28,8 @@ import PkUtils as ut
 
 class Game:
     def __init__(self, username, id):
-        self.user = usr.User(username)
+        self.learnset = ut.import_learnset()
+        self.user = usr.User(self.learnset, username)
         self.opp_user = None
         self.window = None
         self.home_frame = None
@@ -45,7 +46,6 @@ class Game:
         self.request_num = None
         self.id = id
         self.battle = None
-        self.learnset = ut.import_learnset()
 
 
     def connect_mqtt(self):
@@ -76,7 +76,7 @@ class Game:
         print(msg)
 
         if msg and msg[0] == "request":
-            self.opp_user = usr.User()
+            self.opp_user = usr.User(self.learnset)
             self.opp_user.username = msg[1]
             self.opp_user.team_df = pd.read_csv(io.StringIO(msg[3]), sep='\s+')
             self.request_num = int(msg[2])
@@ -108,7 +108,7 @@ class Game:
             if msg[3] == "accept":
                 print("Starting battle with: " + msg[1])
                 self.client.unsubscribe("ece180d/pokEEmon/" + self.user.username + "/response")
-                self.opp_user = usr.User()
+                self.opp_user = usr.User(self.learnset)
                 self.opp_user.username = msg[1]
                 self.opp_user.team_df = pd.read_csv(io.StringIO(msg[4]), sep='\s+')
                 self.battle = bt.Battle(self.user, self.request_num, self.opp_user, self.window, self.client, self.home_screen, self.id, self.learnset)
@@ -349,7 +349,7 @@ class Game:
         if prev_screen:
             prev_screen.pack_forget()
 
-        self.opp_user = usr.User()
+        self.opp_user = usr.User(self.learnset)
         self.opp_user.username = "Bot"
         basepk_df = pd.read_csv("data/new_pokemon_withMoves.csv")
         num_pk = random.randint(2, 5)
