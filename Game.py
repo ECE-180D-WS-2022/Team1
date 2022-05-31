@@ -455,7 +455,7 @@ class Game:
         #create label for cv image feed
         label = tk.Label(self.train_frame)
         #create label for pose reference image
-        ref_img_label = tk.Label(self.train_frame)
+        ref_img_label = tk.Label(self.train_frame, bg = "#34cfeb")
 
         pose_video = mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.5, model_complexity=1)
 
