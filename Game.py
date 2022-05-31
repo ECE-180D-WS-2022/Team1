@@ -491,7 +491,7 @@ class Game:
                 if returned_pose == self.desired_pose:
                     print("matched pose!")
                     #### LEVELING UP ####
-                    i = self.user.team_df.index[self.user.team_df["name"] == "drakloak"].item()
+                    i = self.user.team_df.index[self.user.team_df["name"] == self.working_pokemon].item()
                     self.user.team_df.loc[i] = ut.level_up(self.user.team_df.loc[i], 20, self.learnset)
 
                     print("Writing updated team to {}".format(self.user.path + "/team.csv"))
