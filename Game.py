@@ -446,6 +446,18 @@ class Game:
         desired_pose_label = tk.Label(self.train_frame, bg = "#34cfeb")
         desired_pose_label.config(text = f"Match the pose of: {self.desired_pose}", font=("Arial", 25))
         desired_pose_label.pack()
+
+        ## Adding sprites
+        user_pokemon_id = self.user.team_df.loc[self.user.team_df["name"]==self.working_pokemon,"id"].item()
+        if os.path.isfile("sprites/"+str(user_pokemon_id)+".png"):
+            user_pokemon_img_path = "sprites/"+str(user_pokemon_id)+".png"
+        else:
+            user_pokemon_img_path = "sprites/1.png"
+        user_pokemon_img = ImageTk.PhotoImage(Image.open(user_pokemon_img_path).convert("RGBA"))
+        user_pokemon_img_label = tk.Label(self.train_frame, image = user_pokemon_img, bg = "#34cfeb")
+        user_pokemon_img_label.photo = user_pokemon_img
+        user_pokemon_img_label.pack()
+        
         #Initializing mediapipe pose class.
         mp_pose = mp.solutions.pose
         #Setting up the Pose function.
