@@ -27,9 +27,17 @@ class Battle:
     def __init__(self, user, battle_id, opp_user, window, client, home, id, learn_set, singleplayer = False):
         self.user = user
         self.user.team_df["curr_hp"] = self.user.team_df["hp"]
+        self.user_Burn = []
+        self.user_Poison = []
+        self.user_Ice = []
+        self.user_Paralyze = []
         self.battle_id = battle_id
         self.opp_user = opp_user
         self.opp_user.team_df["curr_hp"] = self.opp_user.team_df["hp"]
+        self.opp_Burn = []
+        self.opp_Poison = []
+        self.opp_Ice = []
+        self.opp_Paralyze = []
         self.window = window
         self.client = client
         self.home = home
@@ -54,6 +62,18 @@ class Battle:
         mixer.music.load("sounds/battle song.mp3")
         mixer.music.set_volume(0.25)
         mixer.music.play(-1)
+        #generate the lists for
+        for i in range(len(self.user.team_df.index)):
+            self.user_Burn.append(0)
+            self.user_Poison.append(0)
+            self.user_Ice.append(0)
+            self.user_Paralyze.append(0)
+        for i in range(len(self.opp_user.team_df.index)):
+            self.opp_Burn.append(0)
+            self.opp_Poison.append(0)
+            self.opp_Ice.append(0)
+            self.opp_Paralyze.append(0)
+
 
 
     def rcv_gesture_mqtt(self, client, userdata, message):

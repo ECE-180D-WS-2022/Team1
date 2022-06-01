@@ -52,27 +52,28 @@ def learn_moves(pk_df, lvl, learnset):
         #print(ans)
         #print(pokemon_id)
         #print(learnset[pokemon_id - 1][lvl][0])
-        move_id = learnset[pokemon_id - 1][lvl][0]
-        move_learned = moves.loc[learnset[pokemon_id-1][lvl][0] == moves["id"]]
-        #print(move_learned)
-        #check if there are empty move slots
-        if pd.isnull(ans.loc["move2"]):
-            ans.at["move2"] = move_learned.at[move_id-1, "identifier"]
-            return ans
+        move_ids = learnset[pokemon_id - 1][lvl]
+        for move_id in move_ids:
+            move_learned = moves.loc[move_id == moves["id"]]
+            move_name = move_learned.at[move_id-1, "identifier"]
+            #check if move already exists
+            if (ans.loc["move1"] == move_name or ans.loc["move2"] == move_name or ans.loc["move3"] == move_name or ans.loc["move4"] == move_name):
+                temp = 0
+            #print(move_learned)
+            #check if there are empty move slots
+            elif pd.isnull(ans.loc["move2"]):
+                ans.at["move2"] = move_name
 
-        if pd.isnull(ans.loc["move3"]):
-            ans.at["move3"] = move_learned.at[move_id-1, "identifier"]
-            return ans
+            elif pd.isnull(ans.loc["move3"]):
+                ans.at["move3"] = move_name
 
-        if pd.isnull(ans.loc["move4"]):
-            ans.at["move4"] = move_learned.at[move_id-1, "identifier"]
-            return ans
-
-        #if no empty move slots, just randomly replace one
-        index = random.randrange(4) + 1
-        moveIdentifier = "move" + str(index)
-
-        ans.at[moveIdentifier] = move_learned.at[move_id-1, "identifier"]
+            elif pd.isnull(ans.loc["move4"]):
+                ans.at["move4"] = move_name
+            #if no empty move slots, just randomly replace one
+            else:
+                index = random.randrange(4) + 1
+                moveIdentifier = "move" + str(index)
+                ans.at[moveIdentifier] = move_learned.at[move_id-1, "identifier"]
 
 
     return ans
