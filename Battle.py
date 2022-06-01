@@ -60,6 +60,8 @@ class Battle:
         mixer.music.play(-1)
 
         print(self.user.team_df)
+        print(self.user_statuses)
+        print(self.opp_statuses)
 
         #burn: physical damage halved, loses 1/16 of health per turn
         #paralyze: speed halved, 25% chance of losing turn
@@ -96,6 +98,8 @@ class Battle:
             damage = self.calc_damage(movename, int(msg[4]), self.opp_user.team_df.iloc[self.opp_pokemon], self.user.team_df.iloc[self.curr_pokemon])
             curr_hp = self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("curr_hp")]
             curr_hp -= damage
+            #do status update after damage calculation
+            self.update_status()
             if curr_hp < 0:
                 curr_hp = 0
             self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("curr_hp")] = curr_hp
@@ -191,6 +195,8 @@ class Battle:
         damage = self.calc_damage(self.movename, random_mult, self.user.team_df.iloc[self.curr_pokemon], self.opp_user.team_df.iloc[self.opp_pokemon])
         opp_curr_hp = self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("curr_hp")]
         opp_curr_hp -= damage
+        #do status update after damage calculation
+        self.update_status()
         if opp_curr_hp < 0:
             opp_curr_hp = 0
         self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("curr_hp")] = opp_curr_hp
@@ -239,6 +245,9 @@ class Battle:
             damage = ((((((2*attack_pk["level"])/5)+2)*pwr*(attack_pk["attack"]/receive_pk["defense"]))/50)+2)*stab*multiplier*random_mult
 
         return int(math.floor(damage))
+
+    def update_status(self, move_type, attack_pk, receive_pk):
+        test = 0
 
     def find_effectiveness(self, attack_type, receive_type):
         effectiveness_array = [[1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   0.5, 0,   1,   1,   0.5, 1],
@@ -470,6 +479,8 @@ class Battle:
         pokeemon_name = self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("name")]
         curr_hp = self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("curr_hp")]
         curr_hp -= best_damage
+        #update status after damage calculations
+        self.update_status()
         if curr_hp < 0:
             curr_hp = 0
         self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("curr_hp")] = curr_hp
