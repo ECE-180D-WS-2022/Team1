@@ -1,4 +1,4 @@
 "id","name","xp_reward","type","hp","attack","defense","special_attack","special_defense","speed","move1","move2","move3","move4","xp_accumulated","level"
-460,"abomasnow",173,"grass",13,7,7,7,7,6,"ice-punch","razor-leaf","icy-wind","powder-snow",580,1
-886,"drakloak",144,"dragon",12,7,6,6,6,7,"astonish","quick-attack","infestation","bite",580,1
+460,"abomasnow",173,"grass",13,7,7,7,7,6,"ice-punch","razor-leaf","icy-wind","powder-snow",880,1
+886,"drakloak",144,"dragon",12,7,6,6,6,7,"astonish","quick-attack","infestation","bite",720,1
 386,"deoxys-normal",270,"psychic",12,8,6,8,6,8,"wrap","","","",580,1

@@ -409,9 +409,9 @@ class Game:
             choose_label = tk.Label(self.train_frame_begin, image=choose_img, bg = "#34cfeb")
             choose_label.photo = choose_img
             pokemon_list = self.user.team_df["name"].tolist()
-            choose_label.pack()
+            choose_label.pack(pady=10)
             for pokemon_name in pokemon_list:
-                tk.Button(self.train_frame_begin, text = pokemon_name, command = partial(self.train_screen, pokemon_name), height = 2, width = 15, bg="#ffcc03", font=f).pack(pady=10)
+                tk.Button(self.train_frame_begin, text = pokemon_name.capitalize(), command = partial(self.train_screen, pokemon_name), height = 2, width = 15, bg="#ffcc03", font=f).pack(pady=10)
             tk.Button(self.train_frame_begin, text = "Back", command = partial(self.home_screen, self.train_frame_begin), height = 2, width = 15, bg="#ffcc03", font = f).pack(pady=10)
         self.train_frame_begin.pack()
 
@@ -434,13 +434,13 @@ class Game:
         self.train_frame = tk.Frame(self.window, bg = "#34cfeb")
         self.train_frame.pack()
 
-        tk.Button(self.train_frame, text="Switch Pokemon", command = partial(self.train_screen_begin, self.train_frame, cap), height = 2, width = 20, bg="#ffcc03").pack(pady=10)
+        tk.Button(self.train_frame, text="Switch Pokemon", command = partial(self.train_screen_begin, self.train_frame, cap), height = 1, width = 18, bg="#ffcc03", font=("Arial", 30)).pack(pady=10)
 
         self.desired_pose = self.choose_pose()
 
         xp_label = tk.Label(self.train_frame, bg = "#34cfeb")
         xp = self.user.team_df.loc[self.user.team_df["name"]==pokemon_name, "xp_accumulated"].values[0]
-        xp_label.config(text=f"Current XP of {pokemon_name}: {xp}", font=("Arial", 25))
+        xp_label.config(text=f"Current XP of {pokemon_name.capitalize()}: {xp}", font=("Arial", 25))
         xp_label.pack()
 
         desired_pose_label = tk.Label(self.train_frame, bg = "#34cfeb")
@@ -457,7 +457,7 @@ class Game:
         user_pokemon_img_label = tk.Label(self.train_frame, image = user_pokemon_img, bg = "#34cfeb")
         user_pokemon_img_label.photo = user_pokemon_img
         user_pokemon_img_label.pack()
-        
+
         #Initializing mediapipe pose class.
         mp_pose = mp.solutions.pose
         #Setting up the Pose function.
