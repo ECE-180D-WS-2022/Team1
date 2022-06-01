@@ -99,7 +99,7 @@ class Battle:
             curr_hp = self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("curr_hp")]
             curr_hp -= damage
             #do status update after damage calculation
-            self.update_status()
+            self.update_status(movename, pokeemon_name)
             if curr_hp < 0:
                 curr_hp = 0
             self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("curr_hp")] = curr_hp
@@ -196,7 +196,7 @@ class Battle:
         opp_curr_hp = self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("curr_hp")]
         opp_curr_hp -= damage
         #do status update after damage calculation
-        self.update_status()
+        self.update_status(self.movename, self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("name")])
         if opp_curr_hp < 0:
             opp_curr_hp = 0
         self.opp_user.team_df.iloc[self.opp_pokemon, self.opp_user.team_df.columns.get_loc("curr_hp")] = opp_curr_hp
@@ -246,7 +246,7 @@ class Battle:
 
         return int(math.floor(damage))
 
-    def update_status(self, move_type, attack_pk, receive_pk):
+    def update_status(self, move_name, receive_pk_name):
         test = 0
 
     def find_effectiveness(self, attack_type, receive_type):
@@ -480,7 +480,7 @@ class Battle:
         curr_hp = self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("curr_hp")]
         curr_hp -= best_damage
         #update status after damage calculations
-        self.update_status()
+        self.update_status(best_move, pokeemon_name)
         if curr_hp < 0:
             curr_hp = 0
         self.user.team_df.iloc[self.curr_pokemon, self.user.team_df.columns.get_loc("curr_hp")] = curr_hp
