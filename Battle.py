@@ -660,7 +660,7 @@ class Battle:
         f = tk.font.Font(size=30)
 
         see_frame = tk.Frame(self.window, bg = "#34cfeb")
-        img = ImageTk.PhotoImage(Image.open("images/choose_pokemon_img.png")) #TODO: replace with "Your Team"
+        img = ImageTk.PhotoImage(Image.open("images/your_team_img.png")) #TODO: replace with "Your Team"
         choose_label = tk.Label(see_frame, image = img, bg = "#34cfeb")
         choose_label.photo = img
         choose_label.pack()
@@ -691,7 +691,7 @@ class Battle:
         f = tk.font.Font(size=30)
 
         add_frame = tk.Frame(self.window, bg = "#34cfeb")
-        img = ImageTk.PhotoImage(Image.open("images/choose_pokemon_img.png")) #TODO: replace with "Discard PokEEmon"
+        img = ImageTk.PhotoImage(Image.open("images/discard_pokeemon_img.png")) #TODO: replace with "Discard PokEEmon"
         choose_label = tk.Label(add_frame, image = img, bg = "#34cfeb")
         choose_label.photo = img
         choose_label.pack()
