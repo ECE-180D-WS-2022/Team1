@@ -415,7 +415,7 @@ class Game:
             pokemon_list = self.user.team_df["name"].tolist()
             choose_label.pack(pady=10)
             for pokemon_name in pokemon_list:
-                tk.Button(self.train_frame_begin, text = pokemon_name.capitalize(), command = partial(self.train_screen, pokemon_name), height = 2, width = 15, bg="#ffcc03", font=f).pack(pady=10)
+                tk.Button(self.train_frame_begin, text = pokemon_name.capitalize(), command = partial(self.train_screen, pokemon_name), height = 1, width = 25, bg="#ffcc03", font=f).pack(pady=10)
             tk.Button(self.train_frame_begin, text = "Back", command = partial(self.home_screen, self.train_frame_begin), height = 2, width = 15, bg="#ffcc03", font = f).pack(pady=10)
         self.train_frame_begin.pack()
 

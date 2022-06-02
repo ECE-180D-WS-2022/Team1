@@ -1,7 +1,7 @@
-"id","name","xp_reward","type","hp","attack","defense","special_attack","special_defense","speed","move1","move2","move3","move4","xp_accumulated","level"
-330,"flygon",260,"ground",28,19,17,17,17,19,"feint-attack","dragon-breath","dragon-claw","mud-slap",5612,6
-737,"charjabug",140,"bug",28,19,21,16,19,13,"vice-grip","bite","mud-slap","",6165,7
-503,"samurott",238,"water",30,19,18,20,16,16,"water-gun","slash","tackle","megahorn",5080,6
-511,"pansage",63,"grass",25,14,13,14,13,15,"scratch","","","",5603,6
-69,"bellsprout",60,"grass",22,15,11,14,10,11,"vine-whip","","","",4405,5
-870,"falinks",165,"fighting",26,19,20,16,15,16,"tackle","rock-smash","","",5558,6
+"id","name","xp_reward","type","hp","attack","defense","special_attack","special_defense","speed","move1","move2","move3","move4","xp_accumulated","level","curr_hp"
+330,"flygon",260,"ground",28,19,17,17,17,19,"feint-attack","dragon-breath","dragon-claw","mud-slap",5752,6,28
+737,"charjabug",140,"bug",28,19,21,16,19,13,"vice-grip","bite","mud-slap","",6165,7,28
+503,"samurott",238,"water",30,19,18,20,16,16,"water-gun","slash","tackle","megahorn",5080,6,30
+511,"pansage",63,"grass",25,14,13,14,13,15,"scratch","","","",5603,6,25
+69,"bellsprout",60,"grass",22,15,11,14,10,11,"vine-whip","","","",4405,5,22
+870,"falinks",165,"fighting",26,19,20,16,15,16,"tackle","rock-smash","","",5558,6,26
