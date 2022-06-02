@@ -307,7 +307,7 @@ class Battle:
         self.curr_frame = gesture_frame
 
         # TODO: remove this when using gestures
-        self.window.after(1000, self.do_move)
+        #self.window.after(1000, self.do_move)
 
     def wait_screen(self, move_update = None, prev_wait_frame = None):
         '''
@@ -566,7 +566,7 @@ class Battle:
                 with self.mic as source:
                     self.rec.adjust_for_ambient_noise(source)
 
-            self.stop_listening = self.rec.listen_in_background(self.mic, self.voice_callback, 2)
+            self.stop_listening = self.rec.listen_in_background(self.mic, self.voice_callback, 3)
         else:
             img_2 = ImageTk.PhotoImage(Image.open("images/change_pokemon.png"))
             change_label = tk.Label(move_frame, image = img_2, bg = "#34cfeb")
