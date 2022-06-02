@@ -291,10 +291,16 @@ class Battle:
         self.client.subscribe("ece180d/pokEEmon/" + self.id, qos=1)
         print("Subscribed to " + "ece180d/pokEEmon/" + self.id)
 
+        movename = self.gesturelist[hash(self.movename)%4]
         gesture_frame = tk.Frame(self.window, bg = "#34cfeb")
-        gesture_label = tk.Label(gesture_frame, text="Do a {} ".format(self.gesturelist[hash(self.movename)%4].capitalize()), font=("Arial", 25), bg= "#34cfeb")
+        gesture_label = tk.Label(gesture_frame, text="Do a {} ".format(movename.capitalize()), font=("Arial", 25), bg= "#34cfeb")
+        gesture_img =  ImageTk.PhotoImage(Image.open("images/{}.png".format(movename)))
+        gesture_img_label = tk.Label(gesture_frame, image=gesture_img, bg = "#34cfeb")
+        gesture_img_label.photo = gesture_img
+
         back_button = tk.Button(gesture_frame, text="Back", command = partial(self.move_screen, None, prev_move_frame), height = 2, width = 18, bg = "#ffcc03", font = tk.font.Font(size=30))
-        gesture_label.pack()
+        gesture_label.pack(pady = 5)
+        gesture_img_label.pack(pady = 5)
         back_button.pack(pady = 10)
 
         gesture_frame.pack()
@@ -402,30 +408,33 @@ class Battle:
         if self.singleplayer:
             self.window.after(3000, self.bot_move)
 
-    def gameover_screen(self, won):
-        if self.gameover:
+    def gameover_screen(self, won, back = False):
+        if self.gameover and not back:
             return
 
-        if won:
-            winsound.PlaySound('sounds/win chime.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
+        if back:
+            winsound.PlaySound('sounds/click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
         else:
-            winsound.PlaySound('sounds/lose chime.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
+            if won:
+                winsound.PlaySound('sounds/win chime.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
+            else:
+                winsound.PlaySound('sounds/lose chime.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
 
-        self.gameover = True
-        mixer.music.stop()
-        mixer.music.load("sounds/menu music.mp3")
-        mixer.music.set_volume(0.25)
-        mixer.music.play(-1)
+            self.gameover = True
+            mixer.music.stop()
+            mixer.music.load("sounds/menu music.mp3")
+            mixer.music.set_volume(0.25)
+            mixer.music.play(-1)
 
-        if not self.singleplayer:
-            self.client.unsubscribe("ece180d/pokEEmon/" + self.id)
-            self.client.unsubscribe("ece180d/pokEEmon/" + self.user.username + "/move")
-            self.client.unsubscribe("ece180d/pokEEmon/" + self.user.username + "/change")
-            self.client.unsubscribe("ece180d/pokEEmon/" + self.user.username + "/quit")
+            if not self.singleplayer:
+                self.client.unsubscribe("ece180d/pokEEmon/" + self.id)
+                self.client.unsubscribe("ece180d/pokEEmon/" + self.user.username + "/move")
+                self.client.unsubscribe("ece180d/pokEEmon/" + self.user.username + "/change")
+                self.client.unsubscribe("ece180d/pokEEmon/" + self.user.username + "/quit")
 
-        if self.stop_listening is not None:
-            self.stop_listening(wait_for_stop=False)
-            self.stop_listening = None
+            if self.stop_listening is not None:
+                self.stop_listening(wait_for_stop=False)
+                self.stop_listening = None
 
         if self.curr_frame:
             self.curr_frame.destroy()
@@ -441,9 +450,16 @@ class Battle:
             gameover_label = tk.Label(gameover_frame, image=lost_img, bg = "#34cfeb")
             gameover_label.photo = lost_img
 
-        home_button = tk.Button(gameover_frame, text="Home", command = partial(self.home, gameover_frame), height = 2, width = 15, bg="#ffcc03",font=f)
-
         gameover_label.pack(pady = 5)
+
+        if won and self.singleplayer and self.opp_user.team_df.shape[0] == 1:
+            #add button to capture pokEEmon
+            add_button = tk.Button(gameover_frame, text="Capture {}".format(self.opp_user.team_df.iloc[0]["name"].capitalize()), command = self.add_screen, height = 2, width = 18, bg="#ffcc03",font=f)
+            add_button.pack(pady = 5)
+        see_button = tk.Button(gameover_frame, text="View Team", command = self.see_screen, height = 2, width = 18, bg="#ffcc03",font=f)
+        home_button = tk.Button(gameover_frame, text="Home", command = partial(self.home, gameover_frame), height = 2, width = 18, bg="#ffcc03",font=f)
+
+        see_button.pack(pady = 5)
         home_button.pack(pady = 5)
         gameover_frame.pack()
         self.curr_frame = gameover_frame
@@ -631,7 +647,69 @@ class Battle:
         user_pokemon = self.user.team_df.loc[:,["name","curr_hp"]]
         for row in user_pokemon.itertuples():
             if row.curr_hp > 0:
-                pokemon_button = tk.Button(choose_frame, text="{} : {}".format(row.name.capitalize(), row.curr_hp), command = partial(self.sel_pokemon, row.Index, prev_move_frame), height = 2, width = 18, bg="#ffcc03", font=f)
-                pokemon_button.pack(pady=10)
+                pokemon_button = tk.Button(choose_frame, text="{} | HP : {}".format(row.name.capitalize(), row.curr_hp), command = partial(self.sel_pokemon, row.Index, prev_move_frame), height = 1, width = 25, bg="#ffcc03", font=f)
+                pokemon_button.pack(pady=5)
         choose_frame.pack()
         self.curr_frame = choose_frame
+
+    def see_screen(self):
+        winsound.PlaySound('sounds/click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
+        if self.curr_frame:
+            self.curr_frame.destroy()
+
+        f = tk.font.Font(size=30)
+
+        see_frame = tk.Frame(self.window, bg = "#34cfeb")
+        img = ImageTk.PhotoImage(Image.open("images/choose_pokemon_img.png")) #TODO: replace with "Your Team"
+        choose_label = tk.Label(see_frame, image = img, bg = "#34cfeb")
+        choose_label.photo = img
+        choose_label.pack()
+        user_pokemon = self.user.team_df.loc[:,["name","xp_accumulated"]]
+        for row in user_pokemon.itertuples():
+            pokemon_label = tk.Label(see_frame, text="{} | XP : {}".format(row.name.capitalize(), row.xp_accumulated), height = 2, bg = "#34cfeb", font=f)
+            pokemon_label.pack(pady=10)
+
+        home_button = tk.Button(see_frame, text="Home", command = partial(self.home, see_frame), height = 2, width = 18, bg="#ffcc03",font=f)
+        home_button.pack(pady=5)
+        see_frame.pack()
+        self.curr_frame = see_frame
+
+    def add_screen(self):
+        if self.user.team_df.shape[0] < 6:
+            self.opp_user.team_df.drop('curr_hp', axis=1, inplace=True)
+            self.user.team_df = pd.concat([self.user.team_df, self.opp_user.team_df], ignore_index = True)
+            print("Writing updated team to {}".format(self.user.path + "/team.csv"))
+            print(self.user.team_df)
+            self.user.team_df.to_csv(self.user.path + "/team.csv", index=False, quoting=csv.QUOTE_NONNUMERIC)
+            self.see_screen()
+            return
+
+        winsound.PlaySound('sounds/click.wav', winsound.SND_FILENAME | winsound.SND_ASYNC)
+        if self.curr_frame:
+            self.curr_frame.destroy()
+
+        f = tk.font.Font(size=30)
+
+        add_frame = tk.Frame(self.window, bg = "#34cfeb")
+        img = ImageTk.PhotoImage(Image.open("images/choose_pokemon_img.png")) #TODO: replace with "Discard PokEEmon"
+        choose_label = tk.Label(add_frame, image = img, bg = "#34cfeb")
+        choose_label.photo = img
+        choose_label.pack()
+        user_pokemon = self.user.team_df.loc[:,["name","xp_accumulated"]]
+        for i in range(self.user.team_df.shape[0]):
+            pokemon_button = tk.Button(add_frame, text="{} | XP : {}".format(self.user.team_df.iloc[i]["name"].capitalize(), self.user.team_df.iloc[i]["xp_accumulated"]), command = partial(self.replace_pk, i), height = 1, width = 25, bg="#ffcc03", font=f)
+            pokemon_button.pack(pady=5)
+
+        back_button = tk.Button(add_frame, text="Back", command = partial(self.gameover_screen, True, True), height = 2, width = 18, bg="#ffcc03",font=f)
+        back_button.pack(pady=10)
+
+        add_frame.pack()
+        self.curr_frame = add_frame
+
+    def replace_pk(self, i):
+        self.opp_user.team_df.drop('curr_hp', axis=1, inplace=True)
+        self.user.team_df.loc[i,:] = self.opp_user.team_df.iloc[0,:].values
+        print("Writing updated team to {}".format(self.user.path + "/team.csv"))
+        print(self.user.team_df)
+        self.user.team_df.to_csv(self.user.path + "/team.csv", index=False, quoting=csv.QUOTE_NONNUMERIC)
+        self.see_screen()

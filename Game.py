@@ -352,22 +352,26 @@ class Game:
         self.opp_user = usr.User(self.learnset)
         self.opp_user.username = "Bot"
         basepk_df = pd.read_csv("data/new_pokemon_withMoves.csv")
-        num_pk = random.randint(2, 5)
+        num_pk = random.randint(1, 6)
         self.opp_user.team_df = basepk_df.sample(n = num_pk)
         self.opp_user.team_df.reset_index(drop=True, inplace=True)
 
         total_xp = sum(self.user.team_df["xp_accumulated"].values)
 
-        for i in range(self.opp_user.team_df.shape[0]):
-            xp_boost = max(0, random.randint(total_xp // num_pk - 2000, total_xp // num_pk + 1000))
-            self.opp_user.team_df.loc[i] = ut.bot_level_up(self.opp_user.team_df.loc[i], xp_boost, self.learnset)
+        if num_pk == 1:
+            xp_boost = max(0, random.randint(total_xp // self.user.team_df.shape[0] - 1000, total_xp // self.user.team_df.shape[0] + 2000))
+            self.opp_user.team_df.loc[0] = ut.bot_level_up(self.opp_user.team_df.loc[0], xp_boost, self.learnset)
+        else:
+            for i in range(self.opp_user.team_df.shape[0]):
+                xp_boost = max(0, random.randint(total_xp // num_pk - 2000, total_xp // num_pk + 1000))
+                self.opp_user.team_df.loc[i] = ut.bot_level_up(self.opp_user.team_df.loc[i], xp_boost, self.learnset)
 
         print("Generated opponent team:")
         print(self.opp_user.team_df)
 
 
         self.battle = bt.Battle(self.user, None, self.opp_user, self.window, self.client, self.home_screen, self.id, self.learnset, True)
-        if random.randint(1, 1):
+        if random.randint(0, 1):
             self.battle.move_screen()
         else:
             self.battle.wait_screen()
